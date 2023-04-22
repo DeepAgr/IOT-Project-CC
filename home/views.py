@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from datetime import datetime
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
+from django.conf import settings
 
 # from django.db.models import Avg
 from django.db.models import Min, Max, Avg
@@ -48,6 +49,10 @@ def home(request):
     #     ["anuman23840@gmail.com"],
     #     fail_silently=False,
     # )
+    critical_temp = settings.CRITICAL_TEMP
+    critical_hum = settings.CRITICAL_HUMIDITY
+    critical_gas = settings.CRITICAL_GAS_VALUE
+
     average_temperature = 30.0
     sensor_data = SensorData.objects.filter(
         timestamp__gte=timezone.now() - timedelta(hours=24)
@@ -84,6 +89,9 @@ def home(request):
         "highest_gas": highest_gas,
         "lowest_gas": lowest_gas,
         "average_gas": round(average_gas, 1),
+        "critical_temp": critical_temp,
+        "critical_hum": critical_hum,
+        "critical_gas": critical_gas,
     }
     # print(context)
     return render(request, "home.html", context)
