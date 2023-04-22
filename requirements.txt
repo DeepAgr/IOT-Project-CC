@@ -1,0 +1,6 @@
+Django==3.2.12
+django-crontab==0.7.1
+django-import-export==2.8.0
+djangorestframework==3.13.1
+
+pandas==2.0.0

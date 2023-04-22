@@ -1,0 +1,40 @@
+<!-- profile.html -->
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-lg-10">
+      <div class="card">
+        <div class="card-header">
+          <h4>User Profile</h4>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class = "col-md-3">
+              <div class= "d-flex justify-content-center">
+                <img class= "" style = "border-radius:50%; width:120px" src={{link}} alt="">
+              </div>
+              <h5 class="card-title mt-3 text-center">{{ user.username }}</h5>
+            </div>
+            <div class = "col-md-9">
+              <p class="card-text">
+                <strong>First Name:</strong> {{ user.first_name }}
+              </p>
+              <p class="card-text">
+                <strong>Last Name:</strong> {{ user.last_name }}
+              </p>
+              <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+              <p class="card-text"><strong>Status:</strong> {{ status }}</p>
+              <p class="card-text">
+                <strong>Last Login:</strong> {{ user.last_login }}
+              </p>
+              <p class="card-text">
+                <strong>Date Joined:</strong> {{ user.date_joined }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

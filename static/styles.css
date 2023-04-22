@@ -1,0 +1,19 @@
+.top-heading {
+    text-align: center;
+    padding: 3% 0;
+  }
+
+.about {
+  width: 60px; 
+  background-color: #7c4dff; 
+  height: 2px;
+}
+
+.address {
+  padding-left: 10%;
+}
+
+.heading {
+  font-family: 'Ubuntu', sans-serif;
+  font-size : medium;
+}
