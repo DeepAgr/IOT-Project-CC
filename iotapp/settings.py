@@ -152,5 +152,5 @@ CRITICAL_GAS_VALUE = 800.0
 CRONJOBS = [
     ('*/1 * * * *', 'home.alert_cron.send_alert_email'),
     # ('0 0 1 * *', 'home.data_cron.send_sensor_data_email', '>> /tmp/cron.log'),
-    ('18 17 * * *', 'home.data_cron.send_sensor_data_email'),
+    ('58 11 * * *', 'home.data_cron.send_sensor_data_email'),
 ]
