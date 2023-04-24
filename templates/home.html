@@ -131,9 +131,10 @@
      const chart = new Chart(ctx_temp_chart, {
        type: "line",
        data: {
-         labels: [],
+        labels: [],
          datasets: [
            {
+            label: "Temperature",
              data: [],
              borderColor: "blue",
              borderWidth: 2,
@@ -155,11 +156,15 @@
            chart.data.labels.push(newData.label);
            chart.data.datasets[0].data.push(newData.value);
            // Limit the chart to only show the last 10 data points
-           if(newData.value > 25){
+           if(newData.value > {{critical_temp}}){
             chart.options.scales.xAxes[0].ticks.fontColor = 'red';
+            chart.options.scales.yAxes[0].ticks.fontColor = 'red';
+            chart.data.datasets[0].borderColor = "red";
            }
            else {
             chart.options.scales.xAxes[0].ticks.fontColor = 'blue';
+            chart.options.scales.yAxes[0].ticks.fontColor = 'blue';
+            chart.data.datasets[0].borderColor = "blue";
            }
            if (chart.data.labels.length > 10) {
              chart.data.labels.shift();
@@ -310,6 +315,17 @@
         chart1.data.labels.push(newData.label);
         chart1.data.datasets[0].data.push(newData.value);
         // Limit the chart to only show the last 10 data points
+        if(newData.value > {{critical_hum}}){
+          chart1.options.scales.xAxes[0].ticks.fontColor = 'red';
+          chart1.options.scales.yAxes[0].ticks.fontColor = 'red';
+          chart1.data.datasets[0].borderColor = "red";
+
+         }
+        else {
+          chart1.options.scales.xAxes[0].ticks.fontColor = 'blue';
+          chart1.options.scales.yAxes[0].ticks.fontColor = 'blue';
+          chart1.data.datasets[0].borderColor = "blue";
+        }
         if (chart1.data.labels.length > 10) {
           chart1.data.labels.shift();
           chart1.data.datasets[0].data.shift();
@@ -459,6 +475,16 @@
         chart2.data.labels.push(newData.label);
         chart2.data.datasets[0].data.push(newData.value);
         // Limit the chart to only show the last 10 data points
+        if(newData.value > {{critical_gas}}){
+          chart2.options.scales.xAxes[0].ticks.fontColor = 'red';
+          chart2.options.scales.yAxes[0].ticks.fontColor = 'red';
+          chart2.data.datasets[0].borderColor = "red";
+         }
+        else {
+          chart2.options.scales.xAxes[0].ticks.fontColor = 'blue';
+          chart2.options.scales.yAxes[0].ticks.fontColor = 'blue';
+          chart2.data.datasets[0].borderColor = "blue";
+        }
         if (chart2.data.labels.length > 10) {
           chart2.data.labels.shift();
           chart2.data.datasets[0].data.shift();

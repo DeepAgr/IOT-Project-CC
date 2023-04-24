@@ -1,1 +1,18 @@
-{% extends 'base.html' %} {% block content %} {%endblock%}
+{% extends 'base.html' %} {% block content %}
+
+<div class = "container mx-auto mt-5 pt-4" style = "width:25%">
+    <form method="POST" class = "mb-5" action = "{% url 'export_data' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="startDate" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="startDate" name="startDate">
+        </div>
+        <div class="mb-3 pt-1">
+          <label for="endDate" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="endDate" name="endDate">
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+    </form>
+</div>
+
+{% endblock %}
