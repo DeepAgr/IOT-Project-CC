@@ -48,8 +48,17 @@
         <canvas id="myChart-1"></canvas>
       </div>
     </div>
-    <div class="col-lg-5 my-auto">
-      <div class="container-1 px-3">
+    <div class="col-lg-5">
+      <div class = "d-flex justify-content-center">
+        <div class = "d-inline-block text-truncate lead bg-body-secondary p-2 border rounded" style = "text-align:center"> 
+          <strong>
+          <p style = "display : inline"> Current Temperature Value : </p>
+          <p id="temp_latest_value"  style = "display : inline">{{average_temperature}}</p>
+          <p style = "display : inline">&degC</p>
+          </strong>
+        </div>
+      </div>
+      <div class="container-1 mt-4">
         <canvas id="temperature_info"></canvas>
       </div>
     </div>
@@ -170,6 +179,8 @@
              chart.data.labels.shift();
              chart.data.datasets[0].data.shift();
            }
+           var latestValueTemp = newData.value;
+           document.getElementById("temp_latest_value").innerHTML = latestValueTemp.toFixed(1);
            chart.update();
          },
        });
@@ -207,8 +218,17 @@
         <canvas id="myChart-2"></canvas>
       </div>
     </div>
-    <div class="col-lg-5 my-auto">
-      <div class="container-2 px-3">
+    <div class="col-lg-5">
+      <div class = "d-flex justify-content-center">
+        <div class = "d-inline-block text-truncate lead bg-body-secondary p-2 border rounded" style = "text-align:center"> 
+          <strong>
+          <p style = "display : inline"> Current Humidity Value : </p>
+          <p id="hum_latest_value"  style = "display : inline">{{average_humidity}}</p>
+          <p style = "display : inline"> %</p>
+          </strong>
+        </div>
+      </div>
+      <div class="container-1 mt-4">
         <canvas id="humidity_info"></canvas>
       </div>
     </div>
@@ -330,6 +350,8 @@
           chart1.data.labels.shift();
           chart1.data.datasets[0].data.shift();
         }
+        var latestValueHum = newData.value;
+        document.getElementById("hum_latest_value").innerHTML = latestValueHum.toFixed(1);
         chart1.update();
       },
     });
@@ -367,8 +389,17 @@
         <canvas id="myChart-3"></canvas>
       </div>
     </div>
-    <div class="col-lg-5 my-auto">
-      <div class="container-3 px-3">
+    <div class="col-lg-5">
+      <div class = "d-flex justify-content-center">
+        <div class = "d-inline-block text-truncate lead bg-body-secondary p-2 border rounded" style = "text-align:center"> 
+          <strong>
+          <p style = "display : inline"> Current Gas Value : </p>
+          <p id="gas_latest_value"  style = "display : inline">{{average_gas}}</p>
+          <p style = "display : inline"> ppm</p>
+          </strong>
+        </div>
+      </div>
+      <div class="container-1 mt-4">
         <canvas id="gas_info"></canvas>
       </div>
     </div>
@@ -489,6 +520,8 @@
           chart2.data.labels.shift();
           chart2.data.datasets[0].data.shift();
         }
+        var latestValueGas = newData.value;
+        document.getElementById("gas_latest_value").innerHTML = latestValueGas.toFixed(1);
         chart2.update();
       },
     });

@@ -146,19 +146,43 @@ def profile(request):
     user = User.objects.get(pk=request.user.id)
     name = user.username[0]
     active_status = user.is_active
+    staff_active_status = user.is_staff
+    admin_active_status = user.is_superuser
     if active_status == True:
         status = "Active"
     else:
         status = "Not Active"
 
+    if staff_active_status == True:
+        staff_status = "Active"
+    else:
+        staff_status = "Not Active"
+
+    if admin_active_status == True:
+        admin_status = "Active"
+    else:
+        admin_status = "Not Active"
+
     link = "https://ui-avatars.com/api/?name=" + name
-    context = {"name": name, "link": link, "user": user, "status": status}
+    context = {"name": name, "link": link, "user": user, "status": status, "staff_status":staff_status, "admin_status":admin_status}
     print(link)
     return render(request, "profile.html", context)
 
 
 @login_required
 def export_data(request):
+    if request.method == "POST":
+        start_date = request.POST.get("startDate")
+        end_date = request.POST.get("endDate")
+        sd = datetime.strptime(start_date, "%Y-%m-%d")
+        ed = datetime.strptime(end_date, "%Y-%m-%d")
+        # print(sd)
+        # print(end_date)
+        if ed <= sd:
+            messages.error(request, "End date must be ahead of start date.")
+        else:
+            messages.success(request, "Data sent successfully!")
+
     return render(request, "export_data.html")
 
 
