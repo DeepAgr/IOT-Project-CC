@@ -30,4 +30,7 @@ urlpatterns = [
         name="temperature_range_today",
     ),
     path("profile/", views.profile, name="profile"),
+    path('forgot_password/', views.forgot_password, name='forgot_password'),
+    path('password_reset_done/',views.password_reset_done, name='password_reset_done'),
+    path('data_to_json', views.data_to_json, name="data_to_json"),
 ]
