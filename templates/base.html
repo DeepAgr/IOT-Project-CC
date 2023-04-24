@@ -82,10 +82,13 @@
                 href="{% url 'home' %}"
                 >Home</a
               >
+              {%if user.is_authenticated%}
             </li>
             <li class="nav-item ps-3 pe-3">
               <a class="nav-link" href="#">Link</a>
             </li>
+            {%endif%}
+            {%if user.is_authenticated%}
             <li class="nav-item dropdown ps-3 pe-3">
               <a
                 class="nav-link dropdown-toggle"
@@ -109,6 +112,7 @@
                 </li>
               </ul>
             </li>
+            {%endif%}
           </ul>
         </div>
       </div>
