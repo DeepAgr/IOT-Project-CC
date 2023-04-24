@@ -28,7 +28,10 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.1.0/mdb.min.css"
       rel="stylesheet"
     />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700;900&family=Ubuntu&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700;900&family=Ubuntu&display=swap"
+      rel="stylesheet"
+    />
 
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.2.1/chart.min.js"
@@ -56,12 +59,18 @@
     {% endcomment %}
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
       <div class="container-fluid">
-        <div class = "logo_img"> 
-        <a href="https://www.iitj.ac.in/" target="_blank">
-          <img style = "width:3rem; margin-left : 0.8rem" src = {% static 'images/IITJ_logo.jpg' %} alt="">
-        </a>
+        <div class="logo_img">
+          <a href="https://www.iitj.ac.in/" target="_blank">
+            <img style = "width:3rem; margin-left : 0.8rem" src = {% static
+            'images/IITJ_logo.jpg' %} alt="">
+          </a>
         </div>
-        <a class="navbar-brand ps-4" href="https://cc.iitj.ac.in/" target="_blank">IOT Project CC</a>
+        <a
+          class="navbar-brand ps-4"
+          href="https://cc.iitj.ac.in/"
+          target="_blank"
+          >IOT Project CC</a
+        >
         <button
           class="navbar-toggler"
           type="button"
@@ -84,14 +93,17 @@
               >
               {%if user.is_authenticated%}
             </li>
+            {% if user.is_authenticated %}
             <li class="nav-item ps-3 pe-3">
-              <a class="nav-link" href="#">Link</a>
+              <a class="nav-link active" href="{% url 'export_data' %}"
+                >Export</a
+              >
             </li>
             {%endif%}
             {%if user.is_authenticated%}
             <li class="nav-item dropdown ps-3 pe-3">
               <a
-                class="nav-link dropdown-toggle"
+                class="nav-link active dropdown-toggle"
                 href="#"
                 role="button"
                 data-bs-toggle="dropdown"
@@ -101,9 +113,10 @@
               </a>
               <ul class="dropdown-menu">
                 <li>
-                  <a class="dropdown-item" href="{% url 'profile' %}">{{ user.username }}</a>
+                  <a class="dropdown-item" href="{% url 'profile' %}"
+                    >{{ user.username }}</a
+                  >
                 </li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                   <a class="dropdown-item" href="{% url 'logout_user' %}">
@@ -112,7 +125,7 @@
                 </li>
               </ul>
             </li>
-            {%endif%}
+            {% endif %}
           </ul>
         </div>
       </div>
@@ -120,9 +133,8 @@
 
     {%if messages%} {%for message in messages%}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
-      <div class = "d-flex justify-content-center">
-        {{message}}
-        {{error_message}}
+      <div class="d-flex justify-content-center">
+        {{message}} {{error_message}}
       </div>
       <button
         type="button"
@@ -153,12 +165,13 @@
       crossorigin="anonymous"
     ></script>
   </body>
-  
-
 
   <div class="container-fluid mt-5 px-1">
     <!-- Footer -->
-    <footer class="text-center text-lg-start text-dark" style="background-color: #ECEFF1">
+    <footer
+      class="text-center text-lg-start text-dark"
+      style="background-color: #eceff1"
+    >
       <!-- Section: Links  -->
       <section class="pt-2">
         <div class="container text-center text-md-start mt-4">
@@ -170,33 +183,44 @@
               <h6 class="text-uppercase fw-bold">IIT Jodhpur</h6>
               <hr class="mb-4 mt-0 d-inline-block mx-auto about" />
               <p>
-                The Institute has a modern Computer Center, presently running on a gigabit LAN with 1Gbps internet bandwidth.
+                The Institute has a modern Computer Center, presently running on
+                a gigabit LAN with 1Gbps internet bandwidth.
               </p>
             </div>
             <!-- Grid column -->
-  
+
             <!-- Grid column -->
-            <div class="col-lg-5 col-sm-5 mx-auto mb-4" style = "padding-left : 10%">
+            <div
+              class="col-lg-5 col-sm-5 mx-auto mb-4"
+              style="padding-left: 10%"
+            >
               <!-- Links -->
               <h6 class="text-uppercase fw-bold">Address</h6>
               <hr class="mb-4 mt-0 d-inline-block mx-auto about" />
-              
+
               <p>
-                Computer Center,<br>
-                Indian Institute of Technology Jodhpur,<br>
-                NH 62 Nagaur Road, Karwar 342030,<br>
+                Computer Center,<br />
+                Indian Institute of Technology Jodhpur,<br />
+                NH 62 Nagaur Road, Karwar 342030,<br />
                 Jodhpur District
               </p>
             </div>
             <!-- Grid column -->
-  
+
             <!-- Grid column -->
             <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4 pb-4">
               <!-- Links -->
               <h6 class="text-uppercase fw-bold">Contact</h6>
               <hr class="mb-4 mt-0 d-inline-block mx-auto about" />
               <p><i class="fas fa-home mr-3"></i> IIT Jodhpur, Rajasthan</p>
-              <p><i class="fas fa-envelope mr-3"></i> <a href="mailto: helpdesk_cc@iitj.ac.in" style="text-decoration: none; color: inherit;">helpdesk_cc@iitj.ac.in</a></p>
+              <p>
+                <i class="fas fa-envelope mr-3"></i>
+                <a
+                  href="mailto: helpdesk_cc@iitj.ac.in"
+                  style="text-decoration: none; color: inherit"
+                  >helpdesk_cc@iitj.ac.in</a
+                >
+              </p>
               <p><i class="fas fa-phone mr-3"></i> + 91 234 567 88</p>
               <p><i class="fas fa-print mr-3"></i> + 91 234 567 89</p>
             </div>
@@ -206,7 +230,7 @@
         </div>
       </section>
       <!-- Section: Links  -->
-  
+
       <!-- Copyright -->
       <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2)">
         © 2023 Copyright:
