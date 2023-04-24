@@ -36,41 +36,46 @@ def login_user(request):
 
 
 def forgot_password(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+
         user = User.objects.filter(username=username, email=email).first()
-        
+
         if user:
             # generate a random password reset token
-            token = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-            
+            token = "".join(random.choices(string.ascii_letters + string.digits, k=16))
+
             # set the token for the user and save the user
             user.profile.reset_token = token
             user.profile.save()
-            
+
             # send the password reset email
-            subject = 'Password Reset Request'
+            subject = "Password Reset Request"
             print(subject)
             message = f'Hello {user.first_name},\n\nYou have requested a password reset for your account.\n\nPlease click on the link below to reset your password:\n\n{request.build_absolute_uri("/")}?token={token}\n\nIf you did not request this reset, please ignore this email.\n\nBest regards,\nThe Sensor Data Team'
             from_email = settings.EMAIL_HOST_USER
-            recipient_list = [email,]
+            recipient_list = [
+                email,
+            ]
             send_mail(subject, message, from_email, recipient_list)
-            
-            return redirect('password_reset_done')
+
+            return redirect("password_reset_done")
         else:
             # user not found, display error message
             messages.error(request, "Username and email do not match.")
-            error_message = 'Username and email do not match.'
+            error_message = "Username and email do not match."
             print(error_message)
-            return render(request, 'forgot_password.html', {'error_message': error_message})
-            
-    return render(request, 'forgot_password.html')
+            return render(
+                request, "forgot_password.html", {"error_message": error_message}
+            )
+
+    return render(request, "forgot_password.html")
 
 
 def password_reset_done(request):
     return render(request, "password_reset_done.html")
+
 
 def logout_user(request):
     logout(request)
@@ -143,6 +148,11 @@ def profile(request):
     context = {"name": name, "link": link, "user": user, "status": status}
     print(link)
     return render(request, "profile.html", context)
+
+
+@login_required
+def export_data(request):
+    return render(request, "export_data.html")
 
 
 @csrf_exempt
@@ -284,6 +294,7 @@ def temperature_range_today(request):
     # Return the temperature range as JSON
     return JsonResponse(temperature_range)
 
+
 import csv
 import json
 import pandas as pd
@@ -291,34 +302,48 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from datetime import date, timedelta
 from django.core import serializers
+
 # from home.models import SensorData
 from django.core.mail import EmailMessage
 
+
 def data_to_json(request):
-    latest_data = SensorData.objects.order_by('-timestamp')[:20]
-    data_dict = {'timestamps': [], 'temperatures': [], 'humidities': [], 'gas_values': []}
+    latest_data = SensorData.objects.order_by("-timestamp")[:20]
+    data_dict = {
+        "timestamps": [],
+        "temperatures": [],
+        "humidities": [],
+        "gas_values": [],
+    }
     for data in latest_data:
-        data_dict['timestamps'].append(data.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
-        data_dict['temperatures'].append(data.temperature)
-        data_dict['humidities'].append(data.humidity)
-        data_dict['gas_values'].append(data.gas_value)
+        data_dict["timestamps"].append(data.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+        data_dict["temperatures"].append(data.temperature)
+        data_dict["humidities"].append(data.humidity)
+        data_dict["gas_values"].append(data.gas_value)
     print(data_dict)
     # write data to CSV file
-    with open('sensor_data.csv', mode='w', newline='') as file:
+    with open("sensor_data.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(['timestamp', 'temperature', 'humidity', 'gas_value'])  # add column headers
-        for i in range(len(data_dict['timestamps'])):
-            row = [data_dict['timestamps'][i], data_dict['temperatures'][i], data_dict['humidities'][i], data_dict['gas_values'][i]]
+        writer.writerow(
+            ["timestamp", "temperature", "humidity", "gas_value"]
+        )  # add column headers
+        for i in range(len(data_dict["timestamps"])):
+            row = [
+                data_dict["timestamps"][i],
+                data_dict["temperatures"][i],
+                data_dict["humidities"][i],
+                data_dict["gas_values"][i],
+            ]
             writer.writerow(row)
 
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = ['agrawal.14@iitj.ac.in', 'anuman23840@gmail.com']
+    recipient_list = ["agrawal.14@iitj.ac.in", "anuman23840@gmail.com"]
     email = EmailMessage(
-        'Latest Sensor Data',
-        'Please find the latest sensor data attached.',
+        "Latest Sensor Data",
+        "Please find the latest sensor data attached.",
         from_email,
-        recipient_list
+        recipient_list,
     )
-    email.attach_file('sensor_data.csv')
+    email.attach_file("sensor_data.csv")
     email.send()
     return JsonResponse(data_dict)
