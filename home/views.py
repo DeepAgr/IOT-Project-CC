@@ -169,19 +169,100 @@ def profile(request):
     return render(request, "profile.html", context)
 
 
+# from datetime import datetime
+
+
 @login_required
 def export_data(request):
     if request.method == "POST":
         start_date = request.POST.get("startDate")
         end_date = request.POST.get("endDate")
-        sd = datetime.strptime(start_date, "%Y-%m-%d")
-        ed = datetime.strptime(end_date, "%Y-%m-%d")
+        # Convert start and end dates to datetime objects
+        import datetime
+        start_datetime = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        end_datetime = datetime.datetime.strptime(end_date, '%Y-%m-%d') + datetime.timedelta(days=1)
+
+        # sd = datetime.strptime(start_date, "%Y-%m-%d")
+        # ed = datetime.strptime(end_date, "%Y-%m-%d")
         # print(sd)
         # print(end_date)
-        if ed <= sd:
+        if end_datetime <= start_datetime:
             messages.error(request, "End date must be ahead of start date.")
         else:
+            # Get data from database between start and end dates
+            data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+
+            # Create a list to hold the rows of the CSV file
+            rows = [['Timestamp', 'Temperature', 'Humidity', 'Gas Value']]
+
+            # Add data to the rows list
+            for d in data:
+                rows.append([d.timestamp.strftime('%Y-%m-%d %H:%M:%S'), d.temperature, d.humidity, d.gas_value])
+
+            print(type(rows))
+
+            data_dict = {
+                "timestamps": [],
+                "temperatures": [],
+                "humidities": [],
+                "gas_values": [],
+            }
+            latest_data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+            for edata in latest_data:
+                data_dict["timestamps"].append(edata.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+                data_dict["temperatures"].append(edata.temperature)
+                data_dict["humidities"].append(edata.humidity)
+                data_dict["gas_values"].append(edata.gas_value)
+            print(data_dict)
+
+            # write data to CSV file
+            with open("sensor_data.csv", mode="w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(
+                    ["timestamp", "temperature", "humidity", "gas_value"]
+                )  # add column headers
+                for i in range(len(data_dict["timestamps"])):
+                    row = [
+                        data_dict["timestamps"][i],
+                        data_dict["temperatures"][i],
+                        data_dict["humidities"][i],
+                        data_dict["gas_values"][i],
+                    ]
+                    writer.writerow(row)
+
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = ["agrawal.14@iitj.ac.in", "anuman23840@gmail.com"]
+            email = EmailMessage(
+                "Latest Sensor Data",
+                "Please find the latest sensor data attached.",
+                from_email,
+                recipient_list,
+            )
+            email.attach_file("sensor_data.csv")
+            # email.send()
             messages.success(request, "Data sent successfully!")
+
+            # # Create a CSV file using the rows list
+            # response = HttpResponse(content_type='text/csv')
+            # response['Content-Disposition'] = f'attachment; filename="sensor_data_{start_date}_{end_date}.csv"'
+            # writer = csv.writer(response)
+            # writer.writerows(rows)
+
+            # # Send the CSV file as an attachment via email
+            # from_email = settings.EMAIL_HOST_USER
+            # recipient_list = ["agrawal.14@iitj.ac.in", "anuman23840@gmail.com"]
+            # body='Please find attached the CSV file with the sensor data.'
+            # subject='Sensor Data'
+            # email = EmailMessage(
+            #     subject,
+            #     body,
+            #     from_email,
+            #     recipient_list,
+            # )
+            # email.attach_file(response)
+            # email.send()
+            # messages.success(request, "Data sent successfully!")
+            # return redirect("export_data")
 
     return render(request, "export_data.html")
 
