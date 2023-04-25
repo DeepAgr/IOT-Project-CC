@@ -170,7 +170,7 @@ def profile(request):
 
 
 # from datetime import datetime
-
+import os
 
 @login_required
 def export_data(request):
@@ -199,7 +199,7 @@ def export_data(request):
             for d in data:
                 rows.append([d.timestamp.strftime('%Y-%m-%d %H:%M:%S'), d.temperature, d.humidity, d.gas_value])
 
-            print(type(rows))
+            # print(type(rows))
 
             data_dict = {
                 "timestamps": [],
@@ -213,7 +213,7 @@ def export_data(request):
                 data_dict["temperatures"].append(edata.temperature)
                 data_dict["humidities"].append(edata.humidity)
                 data_dict["gas_values"].append(edata.gas_value)
-            print(data_dict)
+            # print(data_dict)
 
             # write data to CSV file
             with open("sensor_data.csv", mode="w", newline="") as file:
@@ -233,13 +233,14 @@ def export_data(request):
             from_email = settings.EMAIL_HOST_USER
             recipient_list = ["agrawal.14@iitj.ac.in", "anuman23840@gmail.com"]
             email = EmailMessage(
-                "Latest Sensor Data",
-                "Please find the latest sensor data attached.",
+                "Exported Sensor Data",
+                "Please find the exported sensor data attached.",
                 from_email,
                 recipient_list,
             )
             email.attach_file("sensor_data.csv")
-            # email.send()
+            email.send()
+            os.remove("sensor_data.csv")
             messages.success(request, "Data sent successfully!")
 
             # # Create a CSV file using the rows list
