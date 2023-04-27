@@ -1,0 +1,115 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class = "container-1" style = "width:50%">
+    <canvas id="myChart-1"></canvas>
+</div>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+
+{% comment %} <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script> {% endcomment %}
+
+
+<script>
+
+    const options = {
+        plugins: {
+            legend: {
+              display: false
+            }
+        },
+    scales: {
+        y: [
+        {
+            ticks: {
+            fontColor: 'blue',
+            beginAtZero: true,
+            },
+        },
+        ],
+        x: [{
+        scaleLabel: {
+            display: true,
+            fontColor: 'blue' // color of the x-axis label
+        },
+        ticks: {
+            fontColor: 'blue' // color of the x-axis tick labels
+        }
+        }]
+    },
+    };
+
+    // Create a new Chart instance
+    const ctx_temp_chart = document.getElementById("myChart-1").getContext("2d");
+    const chart = new Chart(ctx_temp_chart, {
+        type: "line",
+        data: {
+        labels: [],
+        datasets: [
+            {
+            label: "Temperature",
+            data: [],
+            borderColor: "blue",
+            borderWidth: 2,
+            fill: false,
+            },
+        ],
+        },
+        options: options
+    });
+
+    // Function to update the chart with new data
+    function updateChart() {
+        $.ajax({
+        url: "/get_temperature_data/", // Django view URL to fetch temperature data
+        success: function (data) {
+            // Parse the JSON data and update the chart
+            // console.log(data, "hurreehhhh....");
+            const newData = data;
+            chart.data.labels.push(newData.label);
+            chart.data.datasets[0].data.push(newData.value);
+            // Limit the chart to only show the last 10 data points
+            {% comment %} if(newData.value > {{critical_temp}}){
+            chart.options.scales.xAxes[0].ticks.fontColor = 'red';
+            chart.options.scales.yAxes[0].ticks.fontColor = 'red';
+            chart.data.datasets[0].borderColor = "red";
+            }
+            else {
+            chart.options.scales.xAxes[0].ticks.fontColor = 'blue';
+            chart.options.scales.yAxes[0].ticks.fontColor = 'blue';
+            chart.data.datasets[0].borderColor = "blue";
+            } {% endcomment %}
+            if (chart.data.labels.length > 10) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+            }
+            chart.update();
+        },
+        });
+    }
+
+    // Function to load initial data for the chart
+    function loadInitialData() {
+        $.ajax({
+        url: "/get_initial_temperature_data/", // Django view URL to fetch initial temperature data
+        success: function (data) {
+            // Parse the JSON data and update the chart
+            const initialData = data;
+            chart.data.labels = initialData.labels;
+            chart.data.datasets[0].data = initialData.values;
+            chart.update();
+        },
+        });
+    }
+
+    // Call the loadInitialData function when the page loads to load the initial data
+    $(document).ready(function () {
+        loadInitialData();
+        //updateChart();
+    });
+
+    // Set up a timer to update the chart every 5 seconds
+    setInterval(updateChart, 5000);
+</script>
+
+
+{%endblock%}

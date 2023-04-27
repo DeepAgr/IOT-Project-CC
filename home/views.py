@@ -159,6 +159,63 @@ def newHome(request):
 
 
 @login_required(login_url=login_user)
+def testHome(request):
+    # messages.success(request, f'Welcome {request.user.username}!')
+    # send_mail(
+    #     "Test mail",
+    #     "Here is the message.",
+    #     "anuman.1@iitj.ac.in",
+    #     ["anuman23840@gmail.com"],
+    #     fail_silently=False,
+    # )
+    critical_temp = settings.CRITICAL_TEMP
+    critical_hum = settings.CRITICAL_HUMIDITY
+    critical_gas = settings.CRITICAL_GAS_VALUE
+    average_temperature = 30.0
+    sensor_data = SensorData.objects.filter(
+        timestamp__gte=timezone.now() - timedelta(hours=24)
+    ).order_by("timestamp")
+    temperatures = [data.temperature for data in sensor_data]
+    humidity_values = [data.humidity for data in sensor_data]
+    gas_values = [data.gas_value for data in sensor_data]
+
+    # Calculate highest and lowest temperatures
+    filtered_temperatures = [t for t in temperatures if t is not None]
+    average_temperature = sum(filtered_temperatures) / len(filtered_temperatures)
+    highest_temp = max(filtered_temperatures)
+    lowest_temp = min(filtered_temperatures)
+
+    # Calculate highest and lowest humidity values
+    filtered_humidity_values = [t for t in humidity_values if t is not None]
+    average_humidity = sum(filtered_humidity_values) / len(filtered_humidity_values)
+    highest_hum = max(filtered_humidity_values)
+    lowest_hum = min(filtered_humidity_values)
+
+    # Calculate highest and lowest gas values
+    filtered_gas_values = [t for t in gas_values if t is not None]
+    average_gas = sum(filtered_gas_values) / len(filtered_gas_values)
+    highest_gas = max(filtered_gas_values)
+    lowest_gas = min(filtered_gas_values)
+
+    context = {
+        "highest_temp": highest_temp,
+        "lowest_temp": lowest_temp,
+        "average_temperature": round(average_temperature, 1),
+        "highest_hum": highest_hum,
+        "lowest_hum": lowest_hum,
+        "average_humidity": round(average_humidity, 1),
+        "highest_gas": highest_gas,
+        "lowest_gas": lowest_gas,
+        "average_gas": round(average_gas, 1),
+        "critical_temp": critical_temp,
+        "critical_hum": critical_hum,
+        "critical_gas": critical_gas,
+    }
+    # print(context)
+    return render(request, "testHome.html", context)
+
+
+@login_required(login_url=login_user)
 def home(request):
     # messages.success(request, f'Welcome {request.user.username}!')
     # send_mail(
