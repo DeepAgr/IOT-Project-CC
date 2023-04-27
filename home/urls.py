@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("home/", views.home, name="home"),
+    path("newHome/", views.newHome, name="newHome"),
     path("login/", views.login_user, name="login_user"),
     path("logout/", views.logout_user, name="logout_user"),
     path("getlivedata/", views.getlivedata, name="getlivedata"),
@@ -34,4 +35,5 @@ urlpatterns = [
     path("password_reset_done/", views.password_reset_done, name="password_reset_done"),
     path("data_to_json", views.data_to_json, name="data_to_json"),
     path("export_data/", views.export_data, name="export_data"),
+    path("sensor-data/", views.sensor_data_api, name="sensor-data-api"),
 ]

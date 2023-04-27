@@ -18,6 +18,23 @@ from datetime import timedelta
 import random
 import string
 from django.conf import settings
+from django.views.decorators.http import require_GET
+
+
+@require_GET
+def sensor_data_api(request):
+    latest_data = SensorData.objects.latest("timestamp")
+    data = {
+        "timestamp": latest_data.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        "temperature": latest_data.temperature,
+        "humidity": latest_data.humidity,
+        "gas_value": latest_data.gas_value,
+    }
+    print(data)
+    context = {
+        "data": data,
+    }
+    return JsonResponse(data)
 
 
 def login_user(request):
@@ -28,7 +45,7 @@ def login_user(request):
         if user is not None:
             login(request, user)
             messages.success(request, f"Welcome {user.username}!")
-            return redirect("home")
+            return redirect("newHome")
         else:
             messages.error(request, "Invalid credentials")
             return render(request, "login.html")
@@ -82,6 +99,63 @@ def logout_user(request):
     logout(request)
     messages.success(request, "You have been logged out")
     return redirect("login_user")
+
+
+@login_required(login_url=login_user)
+def newHome(request):
+    # messages.success(request, f'Welcome {request.user.username}!')
+    # send_mail(
+    #     "Test mail",
+    #     "Here is the message.",
+    #     "anuman.1@iitj.ac.in",
+    #     ["anuman23840@gmail.com"],
+    #     fail_silently=False,
+    # )
+    critical_temp = settings.CRITICAL_TEMP
+    critical_hum = settings.CRITICAL_HUMIDITY
+    critical_gas = settings.CRITICAL_GAS_VALUE
+    average_temperature = 30.0
+    sensor_data = SensorData.objects.filter(
+        timestamp__gte=timezone.now() - timedelta(hours=24)
+    ).order_by("timestamp")
+    temperatures = [data.temperature for data in sensor_data]
+    humidity_values = [data.humidity for data in sensor_data]
+    gas_values = [data.gas_value for data in sensor_data]
+
+    # Calculate highest and lowest temperatures
+    filtered_temperatures = [t for t in temperatures if t is not None]
+    average_temperature = sum(filtered_temperatures) / len(filtered_temperatures)
+    highest_temp = max(filtered_temperatures)
+    lowest_temp = min(filtered_temperatures)
+
+    # Calculate highest and lowest humidity values
+    filtered_humidity_values = [t for t in humidity_values if t is not None]
+    average_humidity = sum(filtered_humidity_values) / len(filtered_humidity_values)
+    highest_hum = max(filtered_humidity_values)
+    lowest_hum = min(filtered_humidity_values)
+
+    # Calculate highest and lowest gas values
+    filtered_gas_values = [t for t in gas_values if t is not None]
+    average_gas = sum(filtered_gas_values) / len(filtered_gas_values)
+    highest_gas = max(filtered_gas_values)
+    lowest_gas = min(filtered_gas_values)
+
+    context = {
+        "highest_temp": highest_temp,
+        "lowest_temp": lowest_temp,
+        "average_temperature": round(average_temperature, 1),
+        "highest_hum": highest_hum,
+        "lowest_hum": lowest_hum,
+        "average_humidity": round(average_humidity, 1),
+        "highest_gas": highest_gas,
+        "lowest_gas": lowest_gas,
+        "average_gas": round(average_gas, 1),
+        "critical_temp": critical_temp,
+        "critical_hum": critical_hum,
+        "critical_gas": critical_gas,
+    }
+    # print(context)
+    return render(request, "newHome.html", context)
 
 
 @login_required(login_url=login_user)
@@ -164,13 +238,21 @@ def profile(request):
         admin_status = "Not Active"
 
     link = "https://ui-avatars.com/api/?name=" + name
-    context = {"name": name, "link": link, "user": user, "status": status, "staff_status":staff_status, "admin_status":admin_status}
+    context = {
+        "name": name,
+        "link": link,
+        "user": user,
+        "status": status,
+        "staff_status": staff_status,
+        "admin_status": admin_status,
+    }
     print(link)
     return render(request, "profile.html", context)
 
 
 # from datetime import datetime
 import os
+
 
 @login_required
 def export_data(request):
@@ -179,8 +261,11 @@ def export_data(request):
         end_date = request.POST.get("endDate")
         # Convert start and end dates to datetime objects
         import datetime
-        start_datetime = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-        end_datetime = datetime.datetime.strptime(end_date, '%Y-%m-%d') + datetime.timedelta(days=1)
+
+        start_datetime = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_datetime = datetime.datetime.strptime(
+            end_date, "%Y-%m-%d"
+        ) + datetime.timedelta(days=1)
 
         # sd = datetime.strptime(start_date, "%Y-%m-%d")
         # ed = datetime.strptime(end_date, "%Y-%m-%d")
@@ -190,14 +275,23 @@ def export_data(request):
             messages.error(request, "End date must be ahead of start date.")
         else:
             # Get data from database between start and end dates
-            data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+            data = SensorData.objects.filter(
+                timestamp__range=[start_datetime, end_datetime]
+            )
 
             # Create a list to hold the rows of the CSV file
-            rows = [['Timestamp', 'Temperature', 'Humidity', 'Gas Value']]
+            rows = [["Timestamp", "Temperature", "Humidity", "Gas Value"]]
 
             # Add data to the rows list
             for d in data:
-                rows.append([d.timestamp.strftime('%Y-%m-%d %H:%M:%S'), d.temperature, d.humidity, d.gas_value])
+                rows.append(
+                    [
+                        d.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        d.temperature,
+                        d.humidity,
+                        d.gas_value,
+                    ]
+                )
 
             # print(type(rows))
 
@@ -207,9 +301,13 @@ def export_data(request):
                 "humidities": [],
                 "gas_values": [],
             }
-            latest_data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+            latest_data = SensorData.objects.filter(
+                timestamp__range=[start_datetime, end_datetime]
+            )
             for edata in latest_data:
-                data_dict["timestamps"].append(edata.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+                data_dict["timestamps"].append(
+                    edata.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                )
                 data_dict["temperatures"].append(edata.temperature)
                 data_dict["humidities"].append(edata.humidity)
                 data_dict["gas_values"].append(edata.gas_value)

@@ -1,0 +1,961 @@
+{% extends 'base.html' %} {% block content %}
+
+
+<div class = "container-fluid text-center mt-1">
+    <div class = "row mb-3">
+        <div class = "col-lg-4">
+            {% comment %} <div>
+                <input type="range" min="1" max="35" value="21" id="myRange" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
+            </div> {% endcomment %}
+            <div style = "width : 35%" class = "d-flex justify-content-center mx-auto">
+                <canvas id="myChart_temp_gauge"></canvas>
+            </div>
+        </div>
+        <div class = "col-lg-4">
+            <div style = "width : 35%" class = "d-flex justify-content-center mx-auto">
+                <canvas id="myChart_humidity_gauge"></canvas>
+            </div>
+        </div>
+        <div class = "col-lg-4">
+            <div style = "width : 35%" class = "d-flex justify-content-center mx-auto">
+                <canvas id="myChart_gas_gauge"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class = "row">
+        <div class = "col-lg-4">
+            <div>
+                <input type="range" min="1" max="35" value="21" id="myRange" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
+            </div>
+            <div class = "container-1">
+                <canvas id="myChart-1"></canvas>
+            </div>
+        </div>
+        <div class = "col-lg-4">
+            <div>
+                <input type="range" min="1" max="35" value="21" id="myRange1" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
+            </div>
+            <div class = "container-1">
+                <canvas id="myChart-2"></canvas>
+            </div>
+        </div>
+        <div class = "col-lg-4">
+            <div>
+                <input type="range" min="1" max="35" value="21" id="myRange2" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
+            </div>
+            <div class = "container-1">
+                <canvas id="myChart-3"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class = "row">
+        <div class = "col-lg-4">
+            <div class = "container-1">
+                <canvas id="temperature_info"></canvas>
+            </div>
+        </div>
+        <div class = "col-lg-4">
+            <div class = "container-1">
+                <canvas id="humidity_info"></canvas>
+            </div>
+        </div>
+        <div class = "col-lg-4">
+            <div class = "container-1">
+                <canvas id="gas_info"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+
+  {% comment %} <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script> {% endcomment %}
+
+
+
+<script>
+    //----------------------------------------------------Temperature Gauge-------------------------------------------------------
+    const canvas = document.getElementById('myChart_temp_gauge');
+    const ctx = canvas.getContext('2d');
+    var ran = Math.floor(Math.random() * 100);
+    let myChart_temp_gauge;
+    function updateneedle(){
+      $.ajax(
+        {
+          url:'/sensor-data/',
+          type: 'GET',
+          dataType:'JSON',
+          success: function(newdata){
+            let temp_gauge_values = [newdata.temperature];
+            const data = {
+              labels: ['Good', 'Warm', 'Danger'],
+              datasets: [{
+                label: 'Weekly Sales',
+                data: [30,10,60],
+                backgroundColor: [
+                  'rgba(30, 217, 83, 1)',
+                  'rgba(255, 255, 0, 1)',
+                  'rgba(255, 0, 0, 1)',
+                ],
+                needleValue : temp_gauge_values[0],
+                borderColor: [
+                  'white'
+                ],
+                borderWidth: 2,
+                cutout: '80%',
+                circumference : 180,
+                rotation : 270,
+                borderRadius : 5,
+                animation:false,
+              }]
+            };
+        
+            //gaugeNeedle block
+              
+              const gaugeNeedle = {
+                id : 'gaugeNeedle',
+                afterDatasetDraw(chart,args,options) {
+                  const {ctx, config,data, chartArea : {top,bottom,left,right,width,height}} = chart; 
+                  
+                  ctx.save();
+                  const needleValue = data.datasets[0].needleValue;
+                  const dataTotal = data.datasets[0].data.reduce((a,b) => a+b,0);
+                  const angle = Math.PI + (1/dataTotal*needleValue*Math.PI);
+                  
+                  const cx = width/2;
+                  const cy = chart._metasets[0].data[0].y;
+                  
+                  //needle
+                  ctx.translate(cx,cy);
+                  ctx.rotate(angle);
+                  ctx.beginPath();
+                  ctx.moveTo(0,-2);
+                  ctx.lineTo(height-(ctx.canvas.offsetTop+20),0);
+                  ctx.lineTo(0,2);
+                  ctx.fillStyle = '#444';
+                  ctx.fill();
+                  ctx.restore();
+                  
+                  
+                  //needle dot
+                  ctx.beginPath();
+                  ctx.arc(cx,cy,5,0,10);
+                  ctx.fill();
+                  ctx.restore();
+                  
+                  ctx.font = '20px Helvetica';
+                  ctx.fillStyle = '#444';
+                  ctx.fillText(needleValue+'\u00B0C', cx-20, cy+30);
+                  ctx.textAlign = 'center';
+                  ctx.restore();  
+                }
+              }
+            
+            // config 
+            const config = {
+              type: 'doughnut',
+              data,
+              options: {
+                plugins : {
+                  legend : {
+                    display : false
+                  },
+                  tooltip : {
+                    yAlign : 'bottom',
+                    displayColors : false,
+                    callbacks : {
+                      label : function(tooltipItem, data, value) {
+                        const tracker = tooltipItem.dataset.needleValue;
+                        return `Temperature : ${tracker} %`; 
+                      }
+                    }
+                  }
+                }
+              },
+              plugins : [gaugeNeedle] 
+            };
+        
+            // Instantly assign Chart.js version
+            if (myChart_temp_gauge) {
+              myChart_temp_gauge.destroy();
+            }
+    
+            myChart_temp_gauge = new Chart(ctx, config);
+            
+          }
+        }
+      );
+    }
+    setInterval(updateneedle, 1000);
+
+
+
+
+    //----------------------------------------------------Humidity Gauge-------------------------------------------------------
+    const canvas_humidity = document.getElementById('myChart_humidity_gauge');
+    const ctx_humidity = canvas_humidity.getContext('2d');
+    var ran_humidity = Math.floor(Math.random() * 100);
+    let myChart_humidity_gauge;
+
+    function updateHumidityNeedle(){
+    $.ajax(
+        {
+        url:'/sensor-data/',
+        type: 'GET',
+        dataType:'JSON',
+        success: function(newdata){
+            let humidity_gauge_values = [newdata.humidity];
+            
+            const data_humidity = {
+            labels: ['Low', 'Medium', 'High'],
+            datasets: [{
+                label: 'Humidity',
+                data: [40,30,30],
+                backgroundColor: [
+                'rgba(30, 217, 83, 1)',
+                'rgba(255, 255, 0, 1)',
+                'rgba(255, 0, 0, 1)',
+                ],
+                needleValue : humidity_gauge_values[0],
+                borderColor: [
+                'white'
+                ],
+                borderWidth: 2,
+                cutout: '80%',
+                circumference : 180,
+                rotation : 270,
+                borderRadius : 5,
+                animation:false,
+            }]
+            };
+        
+            //gaugeNeedle block
+            
+            const gaugeNeedle_humidity = {
+            id : 'gaugeNeedle',
+            afterDatasetDraw(chart,args,options) {
+                const {ctx, config,data, chartArea : {top,bottom,left,right,width,height}} = chart; 
+                
+                ctx.save();
+                const needleValue = data.datasets[0].needleValue;
+                const dataTotal = data.datasets[0].data.reduce((a,b) => a+b,0);
+                const angle = Math.PI + (1/dataTotal*needleValue*Math.PI);
+                
+                const cx = width/2;
+                const cy = chart._metasets[0].data[0].y;
+                
+                //needle
+                ctx.translate(cx,cy);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(0,-2);
+                ctx.lineTo(height-(ctx.canvas.offsetTop+20),0);
+                ctx.lineTo(0,2);
+                ctx.fillStyle = '#444';
+                ctx.fill();
+                ctx.restore();
+                
+                
+                //needle dot
+                ctx.beginPath();
+                ctx.arc(cx,cy,5,0,10);
+                ctx.fill();
+                ctx.restore();
+                
+                ctx.font = '20px Helvetica';
+                ctx.fillStyle = '#444';
+                ctx.fillText(needleValue+' %', cx-20, cy+40);
+                ctx.textAlign = 'center';
+                ctx.restore();  
+            }
+            }
+        
+            // config 
+            const config_humidity = {
+            type: 'doughnut',
+            data: data_humidity,
+            options: {
+                plugins : {
+                legend : {
+                    display : false
+                },
+                tooltip : {
+                    yAlign : 'bottom',
+                    displayColors : false,
+                    callbacks : {
+                    label : function(tooltipItem, data, value) {
+                        const tracker = tooltipItem.dataset.needleValue;
+                        return `Humidity : ${tracker} %`; 
+                    }
+                    }
+                }
+                }
+            },
+            plugins : [gaugeNeedle_humidity] 
+            };
+        
+            // Instantly assign Chart.js version
+            if (myChart_humidity_gauge) {
+            myChart_humidity_gauge.destroy();
+            }
+
+            myChart_humidity_gauge = new Chart(ctx_humidity, config_humidity);
+        }
+        }
+    );
+    }
+    setInterval(updateHumidityNeedle, 1000);
+
+
+
+
+    //----------------------------------------------------Gas Gauge-------------------------------------------------------
+    const canvasGas = document.getElementById('myChart_gas_gauge');
+    const ctxGas = canvasGas.getContext('2d');
+    let myChart_gas_gauge;
+    function updateGasNeedle(){
+    $.ajax(
+        {
+        url:'/sensor-data/',
+        type: 'GET',
+        dataType:'JSON',
+        success: function(newdata){
+            let gas_gauge_values = [newdata.gas_value];
+            
+            const data = {
+            labels: ['Safe', 'Moderate', 'Danger'],
+            datasets: [{
+                label: 'Gas Levels',
+                data: [300,100,400],
+                backgroundColor: [
+                'rgba(30, 217, 83, 1)',
+                'rgba(255, 255, 0, 1)',
+                'rgba(255, 0, 0, 1)',
+                ],
+                needleValue : gas_gauge_values[0],
+                borderColor: [
+                'white'
+                ],
+                borderWidth: 2,
+                cutout: '80%',
+                circumference : 180,
+                rotation : 270,
+                borderRadius : 5,
+                animation:false,
+            }]
+            };
+        
+            //gaugeNeedle block
+            
+            const gaugeNeedle = {
+                id : 'gaugeNeedle',
+                afterDatasetDraw(chart,args,options) {
+                const {ctx, config,data, chartArea : {top,bottom,left,right,width,height}} = chart; 
+                
+                ctx.save();
+                const needleValue = data.datasets[0].needleValue;
+                const dataTotal = data.datasets[0].data.reduce((a,b) => a+b,0);
+                const angle = Math.PI + (1/dataTotal*needleValue*Math.PI);
+                
+                const cx = width/2;
+                const cy = chart._metasets[0].data[0].y;
+                
+                //needle
+                ctx.translate(cx,cy);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(0,-2);
+                ctx.lineTo(height-(ctx.canvas.offsetTop+20),0);
+                ctx.lineTo(0,2);
+                ctx.fillStyle = '#444';
+                ctx.fill();
+                ctx.restore();
+                
+                
+                //needle dot
+                ctx.beginPath();
+                ctx.arc(cx,cy,5,0,10);
+                ctx.fill();
+                ctx.restore();
+                
+                ctx.font = '20px Helvetica';
+                ctx.fillStyle = '#444';
+                ctx.fillText(needleValue+' ppm', cx-20, cy+40);
+                ctx.textAlign = 'center';
+                ctx.restore();  
+                }
+            }
+            
+            // config 
+            const config = {
+            type: 'doughnut',
+            data,
+            options: {
+                plugins : {
+                legend : {
+                    display : false
+                },
+                tooltip : {
+                    yAlign : 'bottom',
+                    displayColors : false,
+                    callbacks : {
+                    label : function(tooltipItem, data, value) {
+                        const tracker = tooltipItem.dataset.needleValue;
+                        return `Gas Level : ${tracker}%`; 
+                    }
+                    }
+                }
+                }
+            },
+            plugins : [gaugeNeedle] 
+            };
+        
+            // Instantly assign Chart.js version
+            if (myChart_gas_gauge) {
+            myChart_gas_gauge.destroy();
+            }
+
+            myChart_gas_gauge = new Chart(ctxGas, config);
+            
+        }
+        }
+    );
+    }
+    setInterval(updateGasNeedle, 1000);
+
+
+
+
+
+
+    // Current step to illustrate (initial 21)
+    {% comment %} var step = 21;
+
+    // Convergence error parameters
+    const alpha_data = [305175.781,152587.891,76293.9453, ...];
+            
+    // Sum power data
+    const sum_power_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,.695780064754675,3.945661168612298, ...];
+
+    // Fixed power budged line (fixed to value 10)
+    const P_data = Array(alpha_data.length).fill(10);
+
+    // Step data for power allocation bar graphs. Indexed by step - 1.
+    const step_data = [
+        [0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],
+        [0,.38391202,0,0,0,.21447334,0,0,0,.0973947],
+        [0,1.24290548,0,.67290073,0,1.0734668,0,0,0,.95638816],
+        ... ];
+
+    // Fixed channel gains, used in the simulation
+    const gains = [0.11415057, 2.10490228, 0.50843188, 0.95685888, 
+                0.3945875, 1.55154195, 0.52328784, 0.05926548, 
+                0.19887587, 1.31302735];
+
+
+    var range = document.getElementById("myRange");
+    range.setAttribute('min', 1);
+    range.setAttribute('max', alpha_data.length);
+    var ctx = document.getElementById("alphaId");
+    var alphaChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [...Array(step).keys()].map(x => x + 1), 
+            datasets: [{
+                label: 'Alpha error',
+                data: alpha_data.slice(0, step),
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgb(75, 192, 192)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            aspectRatio: 4,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    type: 'logarithmic'	
+                }
+            }
+        }
+    }); {% endcomment %}
+
+
+    {% comment %} function getRandomData() {
+        return [
+            Math.floor(Math.random() * 100),
+            Math.floor(Math.random() * 100),
+            Math.floor(Math.random() * 100),
+            Math.floor(Math.random() * 100),
+            Math.floor(Math.random() * 100)
+        ];
+    }
+
+    var charttemp = new Chart(document.getElementById('chart1000').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['A', 'B', 'C', 'D', 'E'],
+            datasets: [{
+                label: 'Chart 1',
+                data: getRandomData(),
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        }
+    }); {% endcomment %}
+
+
+
+    // --------------------------------------------------------------Temperature--------------------------------------------------------------
+    var ctx_temp = document.getElementById("temperature_info").getContext("2d");
+    var myChart = new Chart(ctx_temp, {
+        type: "bar",
+        data: {
+        labels: ["Average", "Lowest", "Highest"],
+        datasets: [
+            {
+            barThickness: 60,
+            data: [{{average_temperature}}, {{lowest_temp}}, {{highest_temp}}],
+            backgroundColor: [
+            "rgba(19, 214, 45, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255,69,0, 1)",
+            ],
+            borderColor: [
+            "rgba(19, 214, 45, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255,69,0, 1)",
+            ],
+            borderWidth: 1,
+            },
+        ],
+        },
+        options: {
+            plugins: {
+                legend: {
+                  display: false
+                }
+            },
+        scales: {
+            yAxes: [
+            {
+                ticks: {
+                beginAtZero: true,
+                },
+            },
+            ],
+        },
+        },
+    });
+
+    // Configuration options for the chart_temp_gauge
+    const options = {
+        plugins: {
+            legend: {
+              display: false
+            }
+        },
+    scales: {
+        yAxes: [
+        {
+            ticks: {
+            fontColor: 'blue',
+            beginAtZero: true,
+            },
+        },
+        ],
+        xAxes: [{
+        scaleLabel: {
+            display: true,
+            fontColor: 'blue' // color of the x-axis label
+        },
+        ticks: {
+            fontColor: 'blue' // color of the x-axis tick labels
+        }
+        }]
+    },
+    };
+
+    // Create a new Chart instance
+    const ctx_temp_chart = document.getElementById("myChart-1").getContext("2d");
+    const chart = new Chart(ctx_temp_chart, {
+        type: "line",
+        data: {
+        labels: [],
+        datasets: [
+            {
+            label: "Temperature",
+            data: [],
+            borderColor: "blue",
+            borderWidth: 2,
+            fill: false,
+            },
+        ],
+        },
+        options: options
+    });
+
+    // Function to update the chart with new data
+    function updateChart() {
+        $.ajax({
+        url: "/get_temperature_data/", // Django view URL to fetch temperature data
+        success: function (data) {
+            // Parse the JSON data and update the chart
+            // console.log(data, "hurreehhhh....");
+            const newData = data;
+            chart.data.labels.push(newData.label);
+            chart.data.datasets[0].data.push(newData.value);
+            // Limit the chart to only show the last 10 data points
+            if(newData.value > {{critical_temp}}){
+            chart.options.scales.xAxes[0].ticks.fontColor = 'red';
+            chart.options.scales.yAxes[0].ticks.fontColor = 'red';
+            chart.data.datasets[0].borderColor = "red";
+            }
+            else {
+            chart.options.scales.xAxes[0].ticks.fontColor = 'blue';
+            chart.options.scales.yAxes[0].ticks.fontColor = 'blue';
+            chart.data.datasets[0].borderColor = "blue";
+            }
+            if (chart.data.labels.length > 10) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+            }
+            var latestValueTemp = newData.value;
+            document.getElementById("temp_latest_value").innerHTML = latestValueTemp.toFixed(1);
+            chart.update();
+        },
+        });
+    }
+
+    // Function to load initial data for the chart
+    function loadInitialData() {
+        $.ajax({
+        url: "/get_initial_temperature_data/", // Django view URL to fetch initial temperature data
+        success: function (data) {
+            // Parse the JSON data and update the chart
+            const initialData = data;
+            chart.data.labels = initialData.labels;
+            chart.data.datasets[0].data = initialData.values;
+            chart.update();
+        },
+        });
+    }
+
+    // Call the loadInitialData function when the page loads to load the initial data
+    $(document).ready(function () {
+        loadInitialData();
+        //updateChart();
+    });
+
+    // Set up a timer to update the chart every 5 seconds
+    setInterval(updateChart, 5000);
+
+
+
+    // --------------------------------------------------------------Humidity--------------------------------------------------------------
+    var ctx_hum = document.getElementById("humidity_info").getContext("2d");
+    var myChart = new Chart(ctx_hum, {
+    type: "bar",
+    data: {
+        labels: ["Average", "Lowest", "Highest"],
+        datasets: [
+        {
+            barThickness: 60,
+            data: [{{average_humidity}}, {{lowest_hum}}, {{highest_hum}}],
+            backgroundColor: [
+            "rgba(19, 214, 45, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255,69,0, 1)",
+            ],
+            borderColor: [
+            "rgba(19, 214, 45, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255,69,0, 1)",
+            ],
+            borderWidth: 1,
+        },
+        ],
+    },
+    options: {
+        plugins: {
+            legend: {
+              display: false
+            }
+        },
+        scales: {
+        yAxes: [
+            {
+            ticks: {
+                beginAtZero: true,
+            },
+            },
+        ],
+        },
+    },
+    });
+
+
+    const options1 = {
+        plugins: {
+            legend: {
+              display: false
+            }
+        },
+    scales: {
+        yAxes: [
+        {
+            ticks: {
+            fontColor: 'blue',
+            beginAtZero: true,
+            },
+        },
+        ],
+        xAxes: [{
+        scaleLabel: {
+            display: true,
+            fontColor: 'blue' // color of the x-axis label
+        },
+        ticks: {
+            fontColor: 'blue' // color of the x-axis tick labels
+        }
+        }]
+    },
+    };
+
+    // Create a new Chart instance
+    const ctx_hum_chart = document.getElementById("myChart-2").getContext("2d");
+    const chart1 = new Chart(ctx_hum_chart, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [
+        {
+            label: "Humidity",
+            data: [],
+            borderColor: "blue",
+            borderWidth: 2,
+            fill: false,
+        },
+        ],
+    },
+    options: options1,
+    });
+
+    // Function to update the chart with new data
+    function updateChart1() {
+    $.ajax({
+        url: "/get_humidity_data/", // Django view URL to fetch temperature data
+        success: function (data) {
+        // Parse the JSON data and update the chart
+        // sconsole.log(data, "hurreehhhh1....");
+        const newData = data;
+        chart1.data.labels.push(newData.label);
+        chart1.data.datasets[0].data.push(newData.value);
+        // Limit the chart to only show the last 10 data points
+        if(newData.value > {{critical_hum}}){
+            chart1.options.scales.xAxes[0].ticks.fontColor = 'red';
+            chart1.options.scales.yAxes[0].ticks.fontColor = 'red';
+            chart1.data.datasets[0].borderColor = "red";
+
+            }
+        else {
+            chart1.options.scales.xAxes[0].ticks.fontColor = 'blue';
+            chart1.options.scales.yAxes[0].ticks.fontColor = 'blue';
+            chart1.data.datasets[0].borderColor = "blue";
+        }
+        if (chart1.data.labels.length > 10) {
+            chart1.data.labels.shift();
+            chart1.data.datasets[0].data.shift();
+        }
+        var latestValueHum = newData.value;
+        document.getElementById("hum_latest_value").innerHTML = latestValueHum.toFixed(1);
+        chart1.update();
+        },
+    });
+    }
+
+    // Function to load initial data for the chart
+    function loadInitialData1() {
+    $.ajax({
+        url: "/get_initial_humidity_data/", // Django view URL to fetch initial temperature data
+        success: function (data) {
+        // Parse the JSON data and update the chart
+        const initialData = data;
+        chart1.data.labels = initialData.labels;
+        chart1.data.datasets[0].data = initialData.values;
+        chart1.update();
+        },
+    });
+    }
+
+    // Call the loadInitialData function when the page loads to load the initial data
+    $(document).ready(function () {
+    loadInitialData1();
+    //updateChart();
+    });
+
+    // Set up a timer to update the chart every 5 seconds
+    setInterval(updateChart1, 5000);
+
+
+
+
+
+    // --------------------------------------------------------------Gas--------------------------------------------------------------
+    var ctx_gas = document.getElementById("gas_info").getContext("2d");
+    var myChart = new Chart(ctx_gas, {
+    type: "bar",
+    data: {
+        labels: ["Average", "Lowest", "Highest"],
+        datasets: [
+        {
+            barThickness: 60,
+            data: [{{average_gas}}, {{lowest_gas}}, {{highest_gas}}],
+            backgroundColor: [
+            "rgba(19, 214, 45, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255,69,0, 1)",
+            ],
+            borderColor: [
+            "rgba(19, 214, 45, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255,69,0, 1)",
+            ],
+            borderWidth: 1,
+        },
+        ],
+    },
+    options: {
+        plugins: {
+            legend: {
+              display: false
+            }
+        },
+        scales: {
+        yAxes: [
+            {
+            ticks: {
+                beginAtZero: true,
+            },
+            },
+        ],
+        },
+    },
+    });
+
+
+    const options2 = {
+        plugins: {
+            legend: {
+              display: false
+            }
+        },
+    scales: {
+        yAxes: [
+        {
+            ticks: {
+            fontColor: 'blue',
+            beginAtZero: true,
+            },
+        },
+        ],
+        xAxes: [{
+        scaleLabel: {
+            display: true,
+            fontColor: 'blue' // color of the x-axis label
+        },
+        ticks: {
+            fontColor: 'blue' // color of the x-axis tick labels
+        }
+        }]
+    },
+    };
+
+    // Create a new Chart instance
+    const ctx_gas_chart = document.getElementById("myChart-3").getContext("2d");
+    const chart2 = new Chart(ctx_gas_chart, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [
+        {
+            label: "Gas Value",
+            data: [],
+            borderColor: "blue",
+            borderWidth: 2,
+            fill: false,
+        },
+        ],
+    },
+    options: options2,
+    });
+
+    // Function to update the chart with new data
+    function updateChart2() {
+    $.ajax({
+        url: "/get_gas_data/", // Django view URL to fetch temperature data
+        success: function (data) {
+        // Parse the JSON data and update the chart
+        console.log(data, "hurreehhhh2....");
+        const newData = data;
+        chart2.data.labels.push(newData.label);
+        chart2.data.datasets[0].data.push(newData.value);
+        // Limit the chart to only show the last 10 data points
+        if(newData.value > {{critical_gas}}){
+            chart2.options.scales.xAxes[0].ticks.fontColor = 'red';
+            chart2.options.scales.yAxes[0].ticks.fontColor = 'red';
+            chart2.data.datasets[0].borderColor = "red";
+            }
+        else {
+            chart2.options.scales.xAxes[0].ticks.fontColor = 'blue';
+            chart2.options.scales.yAxes[0].ticks.fontColor = 'blue';
+            chart2.data.datasets[0].borderColor = "blue";
+        }
+        if (chart2.data.labels.length > 10) {
+            chart2.data.labels.shift();
+            chart2.data.datasets[0].data.shift();
+        }
+        var latestValueGas = newData.value;
+        document.getElementById("gas_latest_value").innerHTML = latestValueGas.toFixed(1);
+        chart2.update();
+        },
+    });
+    }
+
+    // Function to load initial data for the chart
+    function loadInitialData2() {
+    $.ajax({
+        url: "/get_initial_gas_data/", // Django view URL to fetch initial temperature data
+        success: function (data) {
+        // Parse the JSON data and update the chart
+        const initialData = data;
+        chart2.data.labels = initialData.labels;
+        chart2.data.datasets[0].data = initialData.values;
+        chart2.update();
+        },
+    });
+    }
+
+    // Call the loadInitialData function when the page loads to load the initial data
+    $(document).ready(function () {
+    loadInitialData2();
+    //updateChart();
+    });
+
+    // Set up a timer to update the chart every 5 seconds
+    setInterval(updateChart2, 5000);
+
+
+</script>
+
+
+
+
+{%endblock%}
