@@ -37,4 +37,5 @@ urlpatterns = [
     path("data_to_json", views.data_to_json, name="data_to_json"),
     path("export_data/", views.export_data, name="export_data"),
     path("sensor-data/", views.sensor_data_api, name="sensor-data-api"),
+    path('line-chart/', views.line_chart_view, name='line_chart'),
 ]

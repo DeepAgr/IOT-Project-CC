@@ -21,6 +21,86 @@ from django.conf import settings
 from django.views.decorators.http import require_GET
 
 
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from PIL import Image
+import os
+import datetime
+from matplotlib.figure import Figure
+
+def line_chart_view(request):
+    # Retrieve data from Django database
+    data = SensorData.objects.all()
+
+    # Create a new figure object
+    fig = Figure(figsize=(6, 4), dpi=100)
+
+    # Add a subplot to the figure
+    ax = fig.add_subplot(1, 1, 1)
+
+    # Create a line plot of the data
+    ax.plot([item.timestamp for item in data], [item.humidity for item in data])
+
+    # Set the chart title and axis labels
+    ax.set_title("My Line Chart")
+    ax.set_xlabel("X Label")
+    ax.set_ylabel("Y Label")
+
+    # Save the figure to a PNG file in the "static" directory of the Django project
+    fig.savefig(os.path.join(os.getcwd(), "static", "image.png"))
+
+    # Create a PIL Image object from the saved file
+    image = Image.open(os.path.join(os.getcwd(), "static", "image.png"))
+
+    # Create a new buffer to hold the PDF data
+    buffer = io.BytesIO()
+
+    # Create a canvas object to write the PDF to
+    pdf_canvas = canvas.Canvas(buffer, pagesize=A4)
+
+    # Add the PDF title
+    pdf_canvas.setFont("Helvetica-Bold", 16)
+    pdf_canvas.drawCentredString(A4[0] / 2, A4[1] - 50, "My PDF Title")
+
+    # Add the date created
+    pdf_canvas.setFont("Helvetica", 12)
+    pdf_canvas.drawString(50, A4[1] - 80, "Created on: " + str(datetime.datetime.now()))
+
+    # Draw the PNG image on the PDF canvas
+    pdf_canvas.drawImage(
+        os.path.join(os.getcwd(), "static", "image.png"),
+        x=50, y=A4[1] - 300,
+        width=image.width / 2, height=image.height / 2,
+        preserveAspectRatio=True,
+        anchor='nw'
+    )
+
+    # Add some text below the graph
+    pdf_canvas.setFont("Helvetica", 12)
+    pdf_canvas.drawString(50, A4[1] - 500, "Some random text here...")
+
+    # Close the PDF canvas to finalize the PDF file
+    pdf_canvas.showPage()
+    pdf_canvas.save()
+
+    # Reset the buffer for reading
+    buffer.seek(0)
+
+    # Create a Django HttpResponse object with the PDF file data.
+    response = FileResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="line_chart.pdf"'
+
+    # Return the HttpResponse object containing the PDF file.
+    return response
+
+
+
+
+
+
+
 @require_GET
 def sensor_data_api(request):
     latest_data = SensorData.objects.latest("timestamp")
