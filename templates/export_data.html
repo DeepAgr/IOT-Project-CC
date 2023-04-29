@@ -11,8 +11,13 @@
           <label for="endDate" class="form-label">End Date</label>
           <input type="date" class="form-control" id="endDate" name="endDate" required>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Submit</button>
-        <a href="{% url 'line_chart' %}" class="btn btn-primary">Download PDF</a>
+        <div class="mb-3 pt-1">
+          <label for="sendemail" class="form-label">Enter email (optional)</label>
+          <input type="email" class="form-control" id="sendemail" name="sendemail" placeholder="Email to export data"></div>
+        <button type="submit" class="btn btn-primary mt-3 me-5">Export Data</button>
+        {% comment %} <a href="{% url 'line_chart' %}" class="btn btn-primary">Download PDF</a> {% endcomment %}
+        {% comment %} <a href="{% url 'line_chart' %}?start_date={{ startDate.value }}&end_date={{ endDate.value }}" class="btn btn-primary">Generate Report</a> {% endcomment %}
+        <button type="submit" class="btn btn-primary mt-3 me-5" formaction="{%url 'line_chart'%}">Generate Report</button>
     </form>
 </div>
 

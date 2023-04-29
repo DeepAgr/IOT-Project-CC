@@ -27,12 +27,63 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from PIL import Image
 import os
-import datetime
 from matplotlib.figure import Figure
 
 def line_chart_view(request):
+    import datetime
+    start_date = request.POST.get("startDate")
+    end_date = request.POST.get("endDate")
+    print(start_date)
+    print(end_date)
+    # Convert start and end dates to datetime objects
+    # import datetime
+
+    start_datetime = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d") + datetime.timedelta(days=1)
+
+    # sd = datetime.strptime(start_date, "%Y-%m-%d")
+    # ed = datetime.strptime(end_date, "%Y-%m-%d")
+    # print(sd)
+    # print(end_date)
+    if end_datetime <= start_datetime:
+        messages.error(request, "End date must be ahead of start date.")
+        return redirect('export_data')
+    else:
+        # Get data from database between start and end dates
+        data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+
+        # Create a list to hold the rows of the CSV file
+        rows = [["Timestamp", "Temperature", "Humidity", "Gas Value"]]
+
+        # Add data to the rows list
+        for d in data:
+            rows.append(
+                [
+                    d.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    d.temperature,
+                    d.humidity,
+                    d.gas_value,
+                ]
+            )
+
+        # print(type(rows))
+
+        data_dict = {
+            "timestamps": [],
+            "temperatures": [],
+            "humidities": [],
+            "gas_values": [],
+        }
+        latest_data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+        for edata in latest_data:
+            data_dict["timestamps"].append(edata.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+            data_dict["temperatures"].append(edata.temperature)
+            data_dict["humidities"].append(edata.humidity)
+            data_dict["gas_values"].append(edata.gas_value)
+        # print(data_dict)
     # Retrieve data from Django database
-    data = SensorData.objects.all()
+    # data = SensorData.objects.all()
+    data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
 
     # Create a new figure object
     fig = Figure(figsize=(6, 4), dpi=100)
@@ -100,7 +151,7 @@ def line_chart_view(request):
 
 
 
-
+#For gauge data
 @require_GET
 def sensor_data_api(request):
     latest_data = SensorData.objects.latest("timestamp")
