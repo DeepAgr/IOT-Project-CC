@@ -29,8 +29,10 @@ from PIL import Image
 import os
 from matplotlib.figure import Figure
 
+
 def line_chart_view(request):
     import datetime
+
     start_date = request.POST.get("startDate")
     end_date = request.POST.get("endDate")
     print(start_date)
@@ -39,7 +41,9 @@ def line_chart_view(request):
     # import datetime
 
     start_datetime = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-    end_datetime = datetime.datetime.strptime(end_date, "%Y-%m-%d") + datetime.timedelta(days=1)
+    end_datetime = datetime.datetime.strptime(
+        end_date, "%Y-%m-%d"
+    ) + datetime.timedelta(days=1)
 
     # sd = datetime.strptime(start_date, "%Y-%m-%d")
     # ed = datetime.strptime(end_date, "%Y-%m-%d")
@@ -47,10 +51,12 @@ def line_chart_view(request):
     # print(end_date)
     if end_datetime <= start_datetime:
         messages.error(request, "End date must be ahead of start date.")
-        return redirect('export_data')
+        return redirect("export_data")
     else:
         # Get data from database between start and end dates
-        data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+        data = SensorData.objects.filter(
+            timestamp__range=[start_datetime, end_datetime]
+        )
 
         # Create a list to hold the rows of the CSV file
         rows = [["Timestamp", "Temperature", "Humidity", "Gas Value"]]
@@ -74,9 +80,13 @@ def line_chart_view(request):
             "humidities": [],
             "gas_values": [],
         }
-        latest_data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
+        latest_data = SensorData.objects.filter(
+            timestamp__range=[start_datetime, end_datetime]
+        )
         for edata in latest_data:
-            data_dict["timestamps"].append(edata.timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+            data_dict["timestamps"].append(
+                edata.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            )
             data_dict["temperatures"].append(edata.temperature)
             data_dict["humidities"].append(edata.humidity)
             data_dict["gas_values"].append(edata.gas_value)
@@ -122,10 +132,12 @@ def line_chart_view(request):
     # Draw the PNG image on the PDF canvas
     pdf_canvas.drawImage(
         os.path.join(os.getcwd(), "static", "image.png"),
-        x=50, y=A4[1] - 300,
-        width=image.width / 2, height=image.height / 2,
+        x=50,
+        y=A4[1] - 300,
+        width=image.width / 2,
+        height=image.height / 2,
         preserveAspectRatio=True,
-        anchor='nw'
+        anchor="nw",
     )
 
     # Add some text below the graph
@@ -140,18 +152,19 @@ def line_chart_view(request):
     buffer.seek(0)
 
     # Create a Django HttpResponse object with the PDF file data.
-    response = FileResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="line_chart.pdf"'
+    response = FileResponse(buffer, content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="line_chart.pdf"'
+
+    # Delete png image from the path
+    png_path = os.path.join(os.getcwd(), "static", "image.png")
+    image.close()
+    os.remove(png_path)
 
     # Return the HttpResponse object containing the PDF file.
     return response
 
 
-
-
-
-
-#For gauge data
+# For gauge data
 @require_GET
 def sensor_data_api(request):
     latest_data = SensorData.objects.latest("timestamp")
@@ -600,7 +613,9 @@ def get_initial_temperature_data(request):
         data["timestamp"] = timezone.localtime(data["timestamp"])
 
     # Create lists for the labels and values in the chart
-    labels = [data["timestamp"].strftime("%H:%M:%S") for data in reversed(temperature_data)]
+    labels = [
+        data["timestamp"].strftime("%H:%M:%S") for data in reversed(temperature_data)
+    ]
     values = [data["temperature"] for data in reversed(temperature_data)]
 
     # Create a dictionary containing the labels and values lists
@@ -608,7 +623,6 @@ def get_initial_temperature_data(request):
 
     # Return the data as a JSON response
     return JsonResponse(data_dict)
-
 
 
 def get_temperature_data(request):
@@ -634,7 +648,9 @@ def get_initial_humidity_data(request):
         data["timestamp"] = timezone.localtime(data["timestamp"])
 
     # Create lists for the labels and values in the chart
-    labels = [data["timestamp"].strftime("%H:%M:%S") for data in reversed(humidity_data)]
+    labels = [
+        data["timestamp"].strftime("%H:%M:%S") for data in reversed(humidity_data)
+    ]
     values = [data["humidity"] for data in reversed(humidity_data)]
     # Create a dictionary containing the labels and values lists
     data_dict = {"labels": labels, "values": values}
@@ -660,7 +676,7 @@ def get_initial_gas_data(request):
     )
     # temperature_data = SensorData.objects.latest('temperature')[:10]
 
-     # Convert the timestamp values to the local timezone
+    # Convert the timestamp values to the local timezone
     for data in gas_data:
         data["timestamp"] = timezone.localtime(data["timestamp"])
 
