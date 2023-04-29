@@ -36,7 +36,7 @@
             <div>
                 <input type="range" min="1" max="35" value="21" id="myRange" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
             </div>
-            <div class = "container-1">
+            <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
                 <canvas id="myChart-1"></canvas>
             </div>
         </div>
@@ -44,7 +44,7 @@
             <div>
                 <input type="range" min="1" max="35" value="21" id="myRange1" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
             </div>
-            <div class = "container-1">
+            <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
                 <canvas id="myChart-2"></canvas>
             </div>
         </div>
@@ -52,24 +52,24 @@
             <div>
                 <input type="range" min="1" max="35" value="21" id="myRange2" onchange="updateStep(this.value)" oninput="updateStep(this.value)">
             </div>
-            <div class = "container-1">
+            <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
                 <canvas id="myChart-3"></canvas>
             </div>
         </div>
     </div>
     <div class = "row">
         <div class = "col-lg-4">
-            <div class = "container-1">
+            <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
                 <canvas id="temperature_info"></canvas>
             </div>
         </div>
         <div class = "col-lg-4">
-            <div class = "container-1">
+            <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
                 <canvas id="humidity_info"></canvas>
             </div>
         </div>
         <div class = "col-lg-4">
-            <div class = "container-1">
+            <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
                 <canvas id="gas_info"></canvas>
             </div>
         </div>
@@ -449,43 +449,56 @@
 
     // --------------------------------------------------------------Temperature--------------------------------------------------------------
     var ctx_temp = document.getElementById("temperature_info").getContext("2d");
-    var myChart = new Chart(ctx_temp, {
-        type: "bar",
+    var myChart = new Chart(ctx_temp,{
+        type: 'bar',
         data: {
-        labels: ["Average", "Lowest", "Highest"],
-        datasets: [
-            {
-            barThickness: 60,
-            data: [{{average_temperature}}, {{lowest_temp}}, {{highest_temp}}],
-            backgroundColor: [
-            "rgba(19, 214, 45, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255,69,0, 1)",
-            ],
-            borderColor: [
-            "rgba(19, 214, 45, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255,69,0, 1)",
-            ],
-            borderWidth: 1,
-            },
-        ],
+            labels: ['Average', 'Lowest', 'Highest'],
+            datasets: [
+                {
+                    barThickness: 30,
+                    data: [{{average_temperature}}, {{lowest_temp}}, {{highest_temp}}],
+                    backgroundColor: [
+                    "rgba(19, 214, 45, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,69,0, 1)",
+                    ],
+                    borderColor: [
+                    "rgba(19, 214, 45, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,69,0, 1)",
+                    ],
+                    borderWidth: 1,
+                },
+            ]
         },
         options: {
-            plugins: {
-                legend: {
-                  display: false
-                }
+          indexAxis: 'y',
+          // Elements options apply to all of the options unless overridden in a dataset
+          // In this case, we are setting the border of each horizontal bar to be 2px wide
+          elements: {
+            bar: {
+              borderWidth: 2,
+            }
+          },
+          responsive: true,
+          plugins: {
+            legend: {
+                display : false
             },
-        scales: {
-            yAxes: [
-            {
-                ticks: {
-                beginAtZero: true,
-                },
-            },
-            ],
-        },
+            title: {
+              display: false,
+              text: 'Temperature information'
+            }
+          },
+          scales : {
+            x : {
+              ticks : {
+                beginAtZero : true,
+              },
+            min : 0,
+            max : Math.round({{highest_temp}} + 10)
+            }
+          },
         },
     });
 
@@ -593,43 +606,56 @@
     // --------------------------------------------------------------Humidity--------------------------------------------------------------
     var ctx_hum = document.getElementById("humidity_info").getContext("2d");
     var myChart = new Chart(ctx_hum, {
-    type: "bar",
-    data: {
-        labels: ["Average", "Lowest", "Highest"],
-        datasets: [
-        {
-            barThickness: 60,
-            data: [{{average_humidity}}, {{lowest_hum}}, {{highest_hum}}],
-            backgroundColor: [
-            "rgba(19, 214, 45, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255,69,0, 1)",
-            ],
-            borderColor: [
-            "rgba(19, 214, 45, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255,69,0, 1)",
-            ],
-            borderWidth: 1,
+        type: 'bar',
+        data: {
+            labels: ['Average', 'Lowest', 'Highest'],
+            datasets: [
+                {
+                    barThickness: 30,
+                    data: [{{average_humidity}}, {{lowest_hum}}, {{highest_hum}}],
+                    backgroundColor: [
+                    "rgba(19, 214, 45, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,69,0, 1)",
+                    ],
+                    borderColor: [
+                    "rgba(19, 214, 45, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,69,0, 1)",
+                    ],
+                    borderWidth: 1,
+                },
+            ]
         },
-        ],
-    },
-    options: {
-        plugins: {
-            legend: {
-              display: false
+        options: {
+          indexAxis: 'y',
+          // Elements options apply to all of the options unless overridden in a dataset
+          // In this case, we are setting the border of each horizontal bar to be 2px wide
+          elements: {
+            bar: {
+              borderWidth: 2,
             }
-        },
-        scales: {
-        yAxes: [
-            {
-            ticks: {
-                beginAtZero: true,
+          },
+          responsive: true,
+          plugins: {
+            legend: {
+                display : false
             },
-            },
-        ],
+            title: {
+              display: false,
+              text: 'Humidity information'
+            }
+          },
+          scales : {
+            x : {
+              ticks : {
+                beginAtZero : true,
+              },
+            min : 0,
+            max : Math.round({{highest_hum}} + 10)
+            }
+          },
         },
-    },
     });
 
 
@@ -738,43 +764,56 @@
     // --------------------------------------------------------------Gas--------------------------------------------------------------
     var ctx_gas = document.getElementById("gas_info").getContext("2d");
     var myChart = new Chart(ctx_gas, {
-    type: "bar",
-    data: {
-        labels: ["Average", "Lowest", "Highest"],
-        datasets: [
-        {
-            barThickness: 60,
-            data: [{{average_gas}}, {{lowest_gas}}, {{highest_gas}}],
-            backgroundColor: [
-            "rgba(19, 214, 45, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255,69,0, 1)",
-            ],
-            borderColor: [
-            "rgba(19, 214, 45, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255,69,0, 1)",
-            ],
-            borderWidth: 1,
+        type: 'bar',
+        data: {
+            labels: ['Average', 'Lowest', 'Highest'],
+            datasets: [
+                {
+                    barThickness: 30,
+                    data: [{{average_gas}}, {{lowest_gas}}, {{highest_gas}}],
+                    backgroundColor: [
+                    "rgba(19, 214, 45, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,69,0, 1)",
+                    ],
+                    borderColor: [
+                    "rgba(19, 214, 45, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,69,0, 1)",
+                    ],
+                    borderWidth: 1,
+                },
+            ]
         },
-        ],
-    },
-    options: {
-        plugins: {
-            legend: {
-              display: false
+        options: {
+          indexAxis: 'y',
+          // Elements options apply to all of the options unless overridden in a dataset
+          // In this case, we are setting the border of each horizontal bar to be 2px wide
+          elements: {
+            bar: {
+              borderWidth: 2,
             }
-        },
-        scales: {
-        yAxes: [
-            {
-            ticks: {
-                beginAtZero: true,
+          },
+          responsive: true,
+          plugins: {
+            legend: {
+                display : false
             },
-            },
-        ],
+            title: {
+              display: false,
+              text: 'Gas information'
+            }
+          },
+          scales : {
+            x : {
+              ticks : {
+                beginAtZero : true,
+              },
+            min : 0,
+            max : Math.round({{highest_gas}} + 10)
+            }
+          },
         },
-    },
     });
 
 
