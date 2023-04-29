@@ -19,7 +19,7 @@ import random
 import string
 from django.conf import settings
 from django.views.decorators.http import require_GET
-
+from django.utils import timezone
 
 import io
 from django.http import FileResponse
@@ -594,18 +594,21 @@ def get_initial_temperature_data(request):
     temperature_data = SensorData.objects.order_by("-timestamp")[:10].values(
         "temperature", "timestamp"
     )
-    # temperature_data = SensorData.objects.latest('temperature')[:10]
+
+    # Convert the timestamp values to the local timezone
+    for data in temperature_data:
+        data["timestamp"] = timezone.localtime(data["timestamp"])
 
     # Create lists for the labels and values in the chart
-    labels = [
-        data["timestamp"].strftime("%H:%M:%S") for data in reversed(temperature_data)
-    ]
+    labels = [data["timestamp"].strftime("%H:%M:%S") for data in reversed(temperature_data)]
     values = [data["temperature"] for data in reversed(temperature_data)]
+
     # Create a dictionary containing the labels and values lists
     data_dict = {"labels": labels, "values": values}
+
     # Return the data as a JSON response
-    print(data_dict)
     return JsonResponse(data_dict)
+
 
 
 def get_temperature_data(request):
@@ -617,7 +620,7 @@ def get_temperature_data(request):
         "value": latest_temperature,
     }
     # Return the data as a JSON response
-    print(data_dict)
+    # print(data_dict)
     return JsonResponse(data_dict)
 
 
@@ -626,17 +629,17 @@ def get_initial_humidity_data(request):
     humidity_data = SensorData.objects.order_by("-timestamp")[:10].values(
         "humidity", "timestamp"
     )
-    # temperature_data = SensorData.objects.latest('temperature')[:10]
+    # Convert the timestamp values to the local timezone
+    for data in humidity_data:
+        data["timestamp"] = timezone.localtime(data["timestamp"])
 
     # Create lists for the labels and values in the chart
-    labels = [
-        data["timestamp"].strftime("%H:%M:%S") for data in reversed(humidity_data)
-    ]
+    labels = [data["timestamp"].strftime("%H:%M:%S") for data in reversed(humidity_data)]
     values = [data["humidity"] for data in reversed(humidity_data)]
     # Create a dictionary containing the labels and values lists
     data_dict = {"labels": labels, "values": values}
     # Return the data as a JSON response
-    print(data_dict)
+    # print(data_dict)
     return JsonResponse(data_dict)
 
 
@@ -646,7 +649,7 @@ def get_humidity_data(request):
     # Create a dictionary containing the label and value for the latest temperature value
     data_dict = {"label": datetime.now().strftime("%H:%M:%S"), "value": latest_humidity}
     # Return the data as a JSON response
-    print(data_dict)
+    # print(data_dict)
     return JsonResponse(data_dict)
 
 
@@ -657,13 +660,17 @@ def get_initial_gas_data(request):
     )
     # temperature_data = SensorData.objects.latest('temperature')[:10]
 
+     # Convert the timestamp values to the local timezone
+    for data in gas_data:
+        data["timestamp"] = timezone.localtime(data["timestamp"])
+
     # Create lists for the labels and values in the chart
     labels = [data["timestamp"].strftime("%H:%M:%S") for data in reversed(gas_data)]
     values = [data["gas_value"] for data in reversed(gas_data)]
     # Create a dictionary containing the labels and values lists
     data_dict = {"labels": labels, "values": values}
     # Return the data as a JSON response
-    print(data_dict)
+    # print(data_dict)
     return JsonResponse(data_dict)
 
 
@@ -673,7 +680,7 @@ def get_gas_data(request):
     # Create a dictionary containing the label and value for the latest temperature value
     data_dict = {"label": datetime.now().strftime("%H:%M:%S"), "value": latest_gas}
     # Return the data as a JSON response
-    print(data_dict)
+    # print(data_dict)
     return JsonResponse(data_dict)
 
 
