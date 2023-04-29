@@ -1,11 +1,11 @@
 .top-heading {
-    text-align: center;
-    padding: 3% 0;
-  }
+  text-align: center;
+  padding: 3% 0;
+}
 
 .about {
-  width: 60px; 
-  background-color: #7c4dff; 
+  width: 60px;
+  background-color: #7c4dff;
   height: 2px;
 }
 
@@ -15,5 +15,28 @@
 
 .heading {
   font-family: 'Ubuntu', sans-serif;
-  font-size : medium;
+  font-size: medium;
+}
+
+
+/* .gas_current {
+  position: absolute;
+  z-index: 2;
+  margin-top: 8.7%;
+} */
+
+@media screen and (min-width: 992px) {
+  .gas_current {
+    position: absolute;
+    z-index: 2;
+    margin-top: 8.7%;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .gas_current {
+    position: absolute;
+    z-index: 2;
+    margin-top: 26%;
+  }
 }

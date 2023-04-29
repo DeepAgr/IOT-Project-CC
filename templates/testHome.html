@@ -17,25 +17,24 @@
               display: false
             }
         },
-    scales: {
-        y: [
-        {
-            ticks: {
-            fontColor: 'blue',
-            beginAtZero: true,
+        scales: {
+            y:
+            {
+                ticks: {
+                    color: 'blue',
+                    beginAtZero: true,
+                },
             },
+            x: {
+                scaleLabel: {
+                    display: false,
+                    color: 'blue' // color of the x-axis label
+                },
+                ticks: {
+                    color: 'blue' // color of the x-axis tick labels
+                }
+            }
         },
-        ],
-        x: [{
-        scaleLabel: {
-            display: true,
-            fontColor: 'blue' // color of the x-axis label
-        },
-        ticks: {
-            fontColor: 'blue' // color of the x-axis tick labels
-        }
-        }]
-    },
     };
 
     // Create a new Chart instance
