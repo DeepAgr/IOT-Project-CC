@@ -234,14 +234,9 @@ def logout_user(request):
 
 @login_required(login_url=login_user)
 def newHome(request):
-    # messages.success(request, f'Welcome {request.user.username}!')
-    # send_mail(
-    #     "Test mail",
-    #     "Here is the message.",
-    #     "anuman.1@iitj.ac.in",
-    #     ["anuman23840@gmail.com"],
-    #     fail_silently=False,
-    # )
+    latest_temperature = SensorData.objects.latest("timestamp").temperature
+    latest_humidity = SensorData.objects.latest("timestamp").humidity
+    latest_gas = SensorData.objects.latest("timestamp").gas_value
     critical_temp = settings.CRITICAL_TEMP
     critical_hum = settings.CRITICAL_HUMIDITY
     critical_gas = settings.CRITICAL_GAS_VALUE
@@ -284,6 +279,9 @@ def newHome(request):
         "critical_temp": critical_temp,
         "critical_hum": critical_hum,
         "critical_gas": critical_gas,
+        "latest_temperature": latest_temperature,
+        "latest_humidity": latest_humidity,
+        "latest_gas": latest_gas,
     }
     # print(context)
     return render(request, "newHome.html", context)
