@@ -27,7 +27,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
-<body>
+<body style = "background-color: #fafafa;">
   {% comment %}
   <div id="navbar">
     <a href="{% url 'home' %}">Home</a>
@@ -46,7 +46,7 @@
           <img style="width:3rem; margin-left : 0.8rem" src={% static 'images/IITJ_logo.jpg' %} alt="">
         </a>
       </div>
-      <a class="navbar-brand ps-4" href={% url 'home' %}>IOT Project CC</a>
+      <a class="navbar-brand ps-4" href={% url 'newHome' %}>IOT Project CC</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -55,6 +55,9 @@
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           <li class="nav-item ps-3 pe-3">
             <a class="nav-link active" aria-current="page" href="{% url 'newHome' %}">Home</a>
+          </li>
+          <li class="nav-item ps-3 pe-3">
+            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Monitor</a>
           </li>
           {% if user.is_authenticated %}
           <li class="nav-item ps-3 pe-3">

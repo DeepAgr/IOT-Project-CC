@@ -31,7 +31,9 @@ from matplotlib.figure import Figure
 
 
 def sensor_data_api2(request):
-    sensor_data = list(SensorData.objects.values("timestamp", "temperature"))
+    sensor_data = list(
+        SensorData.objects.values("timestamp", "temperature", "humidity", "gas_value")
+    )
     return JsonResponse(sensor_data, safe=False)
 
 
