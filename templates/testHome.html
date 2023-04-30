@@ -4,9 +4,124 @@
     <canvas id="myChart-1"></canvas>
 </div>
 
+<div class = "container-1 mx-auto mt-5 d-flex justify-content-center" style = "width:30%" style = "display:inline">
+    <form class = "d-flex justify-content-center" method="POST" action = "{% url 'testHome' %}">
+        {% csrf_token %}
+        <input type="text" class="form-control" id="hour_data" name = "hour_data" placeholder="Hours">
+        <input type="text" class="form-control" id="minute_data" name = "minute_data" placeholder="Minutes">
+        <button type="submit" class="btn btn-primary" id = "" style = "border-top-left-radius: 0;border-bottom-left-radius: 0;">Go</button>
+    </form>
+</div>
+
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
 
 {% comment %} <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script> {% endcomment %}
+
+
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.stock.min.js"></script>
+{% comment %} <script type = "text/javascript" src = "{% static 'canvasjs.stock.min.js' %}"> </script> {% endcomment %}
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script type="text/javascript">
+  var stockChart;
+
+  $(document).ready(function() {
+    // Define the initial chart options
+    var chartOptions = {
+        theme: "light2", 
+      title: {
+        text: "Temperature"
+      },
+      animationEnabled: true,
+      exportEnabled: true,
+      charts: [{
+        height : 270,
+        axisX: {
+            title :  "_",
+          crosshair: {
+            enabled: true,
+            snapToDataPoint: true
+          }
+        },
+        axisY: {
+          crosshair: {
+            enabled: true
+          }
+        },
+        data: [{ 
+          type: "spline",
+          dataPoints: []
+        }]
+      }], 
+      rangeSelector : {
+        enabled : true
+      },   
+      rangeSelector: {
+        {% comment %} inputFields: {
+          startValue: 4000,
+          endValue: 6000,
+          valueFormatString: "###0"
+        }, {% endcomment %}
+        buttons: [{
+          label: "1 min",
+          range: 1,
+          rangeType: "minute"
+        },{
+          label: "30 min",
+          range: 30,
+          rangeType: "minute"
+        },{
+          label: "1 hour",
+          range: 1,
+          rangeType: "hour"
+        },{
+          label: "All",        
+          rangeType: "all"
+        }]
+      }
+    };
+
+    // Render the chart
+    stockChart = new CanvasJS.StockChart("chartContainer", chartOptions);
+    stockChart.render();
+
+    // Set up an interval to update the chart data
+    setInterval(function() {
+      $.ajax({
+        url: '/sensor-data-api', // Replace with the URL to your Django view that returns the sensor data
+        success: function(sensorData) {
+          // Convert the sensor data to an array of data points
+          var dataPoints = [];
+          for (var i = 0; i < sensorData.length; i++) {
+            dataPoints.push({
+              x: new Date(sensorData[i].timestamp),
+              y: sensorData[i].temperature
+            });
+          }
+
+          // Update the chart data
+          stockChart.options.charts[0].data[0].dataPoints = dataPoints;
+          var len = stockChart.options.charts[0].data[0].dataPoints.length;
+          console.log(stockChart.options.charts[0].data[0].dataPoints[len-1]);
+          stockChart.render();
+        }
+      });
+    }, 5000); // Replace with the desired interval in milliseconds
+
+    if (!Element.prototype.setCapture) {
+        Object.defineProperty(Element.prototype, 'setCapture', {
+          value: function () {
+            if (this.setPointerCapture) {
+              this.setPointerCapture();
+            }
+          }
+        });
+      }
+  });
+</script>
+
+<div id="chartContainer" class = "mx-auto" style="height: 450px; width: 50%;"></div>
+
 
 
 <script>

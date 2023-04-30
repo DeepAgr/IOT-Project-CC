@@ -18,12 +18,21 @@
   font-size: medium;
 }
 
+#minute_data {
+  display: inline;
+  width: 25%;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
 
-/* .gas_current {
-  position: absolute;
-  z-index: 2;
-  margin-top: 8.7%;
-} */
+#hour_data {
+  display: inline;
+  width: 25%;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
 
 @media screen and (min-width: 992px) {
   .gas_current {

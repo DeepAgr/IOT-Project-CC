@@ -30,6 +30,11 @@ import os
 from matplotlib.figure import Figure
 
 
+def sensor_data_api2(request):
+    sensor_data = list(SensorData.objects.values("timestamp", "temperature"))
+    return JsonResponse(sensor_data, safe=False)
+
+
 def line_chart_view(request):
     import datetime
 
@@ -310,6 +315,13 @@ def testHome(request):
     #     ["anuman23840@gmail.com"],
     #     fail_silently=False,
     # )
+
+    if request.method == "POST":
+        hour_data = request.POST.get("hour_data")
+        minute_data = request.POST.get("minute_data")
+        print(hour_data)
+        print(minute_data)
+
     critical_temp = settings.CRITICAL_TEMP
     critical_hum = settings.CRITICAL_HUMIDITY
     critical_gas = settings.CRITICAL_GAS_VALUE
