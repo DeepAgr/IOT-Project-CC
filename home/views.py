@@ -284,9 +284,21 @@ def newHome(request):
     critical_hum = settings.CRITICAL_HUMIDITY
     critical_gas = settings.CRITICAL_GAS_VALUE
     average_temperature = 30.0
-    sensor_data = SensorData.objects.filter(
-        timestamp__gte=timezone.now() - timedelta(hours=24)
-    ).order_by("timestamp")
+    hour_data = 24
+    minute_data = 0
+    if request.method == "POST":
+        hour_data = int(request.POST.get("hour_data", 24))
+        minute_data = int(request.POST.get("minute_data", 0))
+        request.session["data_points"] = (hour_data * 720) + (minute_data * 12)
+
+    # Retrieve data_points from the session, or default to 2880
+    data_points = request.session.get("data_points", 2880 * 6)
+    print(data_points)
+    graph_count = data_points / 720
+
+    sensor_data = SensorData.objects.order_by("-timestamp")
+    data_points = min(len(sensor_data), data_points)
+    sensor_data = sensor_data[:data_points]
     temperatures = [data.temperature for data in sensor_data]
     humidity_values = [data.humidity for data in sensor_data]
     gas_values = [data.gas_value for data in sensor_data]
@@ -309,6 +321,30 @@ def newHome(request):
     highest_gas = max(filtered_gas_values)
     lowest_gas = min(filtered_gas_values)
 
+    count = 0
+    for t in filtered_temperatures:
+        if t > critical_temp:
+            count += 1
+
+    count_critical_temp = count
+    print(count_critical_temp)
+
+    count = 0
+    for t in filtered_humidity_values:
+        if t > critical_temp:
+            count += 1
+
+    count_critical_hum = count
+    print("fycjcjg", count_critical_hum)
+
+    count = 0
+    for t in filtered_gas_values:
+        if t > critical_temp:
+            count += 1
+
+    count_critical_gas = count
+    print(count_critical_gas)
+
     context = {
         "highest_temp": highest_temp,
         "lowest_temp": lowest_temp,
@@ -325,6 +361,10 @@ def newHome(request):
         "latest_temperature": latest_temperature,
         "latest_humidity": latest_humidity,
         "latest_gas": latest_gas,
+        "count_critical_temp": count_critical_temp,
+        "count_critical_hum": count_critical_hum,
+        "count_critical_gas": count_critical_gas,
+        "graph_count": graph_count,
     }
     # print(context)
     return render(request, "newHome.html", context)
@@ -345,10 +385,10 @@ def testHome(request):
     if request.method == "POST":
         hour_data = int(request.POST.get("hour_data", 24))
         minute_data = int(request.POST.get("minute_data", 0))
-        request.session['data_points'] = (hour_data*720) + (minute_data*12)
+        request.session["data_points"] = (hour_data * 720) + (minute_data * 12)
 
     # Retrieve data_points from the session, or default to 2880
-    data_points = request.session.get('data_points', 2880*6)
+    data_points = request.session.get("data_points", 2880 * 6)
     print(data_points)
     graph_count = data_points / 720
 
@@ -371,7 +411,6 @@ def testHome(request):
     average_temperature = sum(filtered_temperatures) / len(filtered_temperatures)
     highest_temp = max(filtered_temperatures)
     lowest_temp = min(filtered_temperatures)
-    
 
     # Calculate highest and lowest humidity values
     filtered_humidity_values = [t for t in humidity_values if t is not None]
@@ -385,27 +424,27 @@ def testHome(request):
     highest_gas = max(filtered_gas_values)
     lowest_gas = min(filtered_gas_values)
 
-    count=0
+    count = 0
     for t in filtered_temperatures:
         if t > critical_temp:
-            count+=1
-    
+            count += 1
+
     count_critical_temp = count
     print(count_critical_temp)
-    
-    count=0
+
+    count = 0
     for t in filtered_humidity_values:
         if t > critical_temp:
-            count+=1
-    
-    count_critical_hum = count
-    print("fycjcjg",count_critical_hum)
+            count += 1
 
-    count=0
+    count_critical_hum = count
+    print("fycjcjg", count_critical_hum)
+
+    count = 0
     for t in filtered_gas_values:
         if t > critical_temp:
-            count+=1
-    
+            count += 1
+
     count_critical_gas = count
     print(count_critical_gas)
 
@@ -425,7 +464,7 @@ def testHome(request):
         "count_critical_temp": count_critical_temp,
         "count_critical_hum": count_critical_hum,
         "count_critical_gas": count_critical_gas,
-        "graph_count":graph_count,
+        "graph_count": graph_count,
     }
     # print(context)
     return render(request, "testHome.html", context)

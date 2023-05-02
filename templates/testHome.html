@@ -7,8 +7,8 @@
 <div class = "container-1 mx-auto mt-5 d-flex justify-content-center" style = "width:30%" style = "display:inline">
     <form class = "d-flex justify-content-center" method="POST" action = "{% url 'testHome' %}">
         {% csrf_token %}
-        <input type="text" class="form-control" id="hour_data" name = "hour_data" placeholder="Hours">
-        <input type="text" class="form-control" id="minute_data" name = "minute_data" placeholder="Minutes">
+        <input type="text" class="form-control" id="hour_data" name = "hour_data" placeholder="Hours" required>
+        <input type="text" class="form-control" id="minute_data" name = "minute_data" placeholder="Minutes" required>
         <button type="submit" class="btn btn-primary" id = "" style = "border-top-left-radius: 0;border-bottom-left-radius: 0;">Go</button>
     </form>
 </div>
@@ -26,201 +26,26 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
-
 <script>
-
-    const options = {
-        plugins: {
-            legend: {
-              display: false
-            }
-        },
-        scales: {
-            y:
-            {
-                ticks: {
-                    color: 'blue',
-                    beginAtZero: true,
-                },
-            },
-            x: {
-                scaleLabel: {
-                    display: false,
-                    color: 'blue' // color of the x-axis label
-                },
-                ticks: {
-                    color: 'blue' // color of the x-axis tick labels
-                }
-            }
-        },
-    };
-
-    // Create a new Chart instance
-    const ctx_temp_chart = document.getElementById("myChart-1").getContext("2d");
-    const chart = new Chart(ctx_temp_chart, {
-        type: "line",
-        data: {
-        labels: [],
-        datasets: [
-            {
-            label: "Temperature",
-            data: [],
-            borderColor: "blue",
-            borderWidth: 2,
-            fill: false,
-            },
-        ],
-        },
-        options: options
-    });
-
-    // Function to update the chart with new data
-    function updateChart() {
-        $.ajax({
-        url: "/get_temperature_data/", // Django view URL to fetch temperature data
-        success: function (data) {
-            // Parse the JSON data and update the chart
-            // console.log(data, "hurreehhhh....");
-            const newData = data;
-            chart.data.labels.push(newData.label);
-            chart.data.datasets[0].data.push(newData.value);
-            // Limit the chart to only show the last 10 data points
-            {% comment %} if(newData.value > {{critical_temp}}){
-            chart.options.scales.xAxes[0].ticks.fontColor = 'red';
-            chart.options.scales.yAxes[0].ticks.fontColor = 'red';
-            chart.data.datasets[0].borderColor = "red";
-            }
-            else {
-            chart.options.scales.xAxes[0].ticks.fontColor = 'blue';
-            chart.options.scales.yAxes[0].ticks.fontColor = 'blue';
-            chart.data.datasets[0].borderColor = "blue";
-            } {% endcomment %}
-            if (chart.data.labels.length > 10) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-            }
-            chart.update();
-        },
-        });
-    }
-
-    // Function to load initial data for the chart
-    function loadInitialData() {
-        $.ajax({
-        url: "/get_initial_temperature_data/", // Django view URL to fetch initial temperature data
-        success: function (data) {
-            // Parse the JSON data and update the chart
-            const initialData = data;
-            chart.data.labels = initialData.labels;
-            chart.data.datasets[0].data = initialData.values;
-            chart.update();
-        },
-        });
-    }
-
-    // Call the loadInitialData function when the page loads to load the initial data
-    $(document).ready(function () {
-        loadInitialData();
-        //updateChart();
-    });
-
-    // Set up a timer to update the chart every 5 seconds
-    setInterval(updateChart, 5000);
-
-
-    var ctx_temp = document.getElementById("temperature_info").getContext("2d");
-    var myChart = new Chart(ctx_temp,{
-        type: 'bar',
-        data: {
-            labels: ['Average', 'Lowest', 'Highest'],
-            datasets: [
-                {
-                    barThickness: 30,
-                    data: [{{average_temperature}}, {{lowest_temp}}, {{highest_temp}}],
-                    backgroundColor : "rgba(19, 214, 45, 1)",
-                    borderColor : "rgba(19, 214, 45, 1)",
-                    {% comment %} backgroundColor: [
-                    "rgba(19, 214, 45, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255,69,0, 1)",
-                    ],
-                    borderColor: [
-                    "rgba(19, 214, 45, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255,69,0, 1)",
-                    ], {% endcomment %}
-                    borderWidth: 1,
-                },
-                {
-                    barThickness: 30,
-                    data: [{{average_humidity}}, {{lowest_hum}}, {{highest_hum}}],
-                    backgroundColor : "rgba(54, 162, 235, 1)",
-                    borderColor : "rgba(54, 162, 235, 1)",
-                    {% comment %} backgroundColor: [
-                    "rgba(19, 214, 45, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255,69,0, 1)",
-                    ],
-                    borderColor: [
-                    "rgba(19, 214, 45, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255,69,0, 1)",
-                    ], {% endcomment %}
-                    borderWidth: 1,
-                },
-                {
-                    barThickness: 30,
-                    data: [{{average_gas}}, {{lowest_gas}}, {{highest_gas}}],
-                    backgroundColor : "rgba(255,69,0, 1)",
-                    borderColor : "rgba(255,69,0, 1)",
-                    {% comment %} backgroundColor: [
-                    "rgba(19, 214, 45, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255,69,0, 1)",
-                    ],
-                    borderColor: [
-                    "rgba(19, 214, 45, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255,69,0, 1)",
-                    ], {% endcomment %}
-                    borderWidth: 1,
-                },
-                
-            ]
-        },
-        options: {
-          indexAxis: 'y',
-          // Elements options apply to all of the options unless overridden in a dataset
-          // In this case, we are setting the border of each horizontal bar to be 2px wide
-          elements: {
-            bar: {
-              borderWidth: 2,
-            }
-          },
-          responsive: true,
-          plugins: {
-            legend: {
-                display : false
-            },
-            title: {
-              display: false,
-              text: 'Temperature information'
-            }
-          },
-          scales : {
-            x : {
-              ticks : {
-                beginAtZero : true,
-              },
-            min : 0,
-            max : Math.round({{highest_temp}} + 10)
-            }
-          },
-        },
-    });
-
-
     window.onload = function () {
+        var chart_pie = new CanvasJS.Chart("chart_pieContainer", {
+            animationEnabled: true,
+            title: {
+                text: "Desktop Search Engine Market Share - 2016"
+            },
+            data: [{
+                type: "pie",
+                startAngle: 240,
+                yValueFormatString: "##0.00\"%\"",
+                indexLabel: "{label} {y}",
+                dataPoints: [
+                    {y: {{count_critical_temp}}, label: "Temperature"},
+                    {y: 0, label: "Humidity"},
+                    {y: 0, label: "Gas"}
+                ]
+            }]
+        });
+        chart_pie.render();
 
         var chart = new CanvasJS.Chart("chartContainer", {
             animationEnabled: true,
@@ -305,7 +130,8 @@
 </script>
 
 <div id="chartContainer" style="height: 370px; width: 40%;"></div>
-<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+<div id="chart_pieContainer" style=" width: 40%;"></div>
+{% comment %} <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script> {% endcomment %}
 
 
 {%endblock%}

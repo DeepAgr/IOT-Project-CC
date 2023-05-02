@@ -43,9 +43,57 @@
             </div>
         </div>
         <div class = "col-lg-5">
-            <div class = "container-1 mx-auto">
-                <div id="info_horizontal" style="height: 400px;"></div>
+          <div class = "card shadow">
+            <h6 class="card-header" style = "background-color: #37474F;border-radius: 0 !important;color: white;margin-bottom: 0;padding: 1rem;">Critical Values </h6>
+            {% comment %} <div class = "row">
+              <div class = "col-lg-6">
+                <div class = "px-3  pt-1 text-truncate bg-body-secondary border rounded">
+                  <p>Temperature : 0</p>
+                  <p>Humidity    : 0</p>
+                  <p>Gas         : 0</p>
+                </div>
+              </div>
+              <div class = "col-lg-6">
+                <form class = "mx-auto" method="POST" action = "{% url 'testHome' %}">
+                  {% csrf_token %}
+                  <div style = "width : 80%" class = "mt-1">
+                    <input type="text" class="form-control" name = "hour_data" placeholder="Hours" required>
+                  </div>
+                  <div style = "width : 80%" class = "mt-1">
+                    <input type="text" class="form-control" name = "minute_data" placeholder="Minutes" required>
+                  </div>
+                  <div class = "mt-1">
+                    <button type="submit" class="btn btn-primary">Go</button>
+                  </div>
+                </form>
+              </div>
+            </div> {% endcomment %}
+            <div class = "px-2 pt-2 pb-2" style = "display:inline">
+              <form class = "d-flex" method="POST" action = "{% url 'newHome' %}">
+                {% csrf_token %}
+                  <input type="text" class="form-control" id="hour_data" name = "hour_data" placeholder="Hours" required>
+                  <input type="text" class="form-control" id="minute_data" name = "minute_data" placeholder="Minutes" required>
+                  <button type="submit" class="btn btn-primary" style = "border-top-left-radius: 0;border-bottom-left-radius: 0;">Go</button>
+              </form>
             </div>
+            <div class = "d-flex pb-2 px-2">
+              <div class = "d-inline-block text-truncate lead bg-body-secondary border rounded me-2" style = "text-align:center">
+                <p style = "display : inline" class = "px-2">Temp : {{count_critical_temp}}</p>
+              </div>
+              <div class = "d-inline-block text-truncate lead bg-body-secondary border rounded me-2" style = "text-align:center">
+                <p style = "display : inline" class = "px-2">Humidity : {{count_critical_hum}}</p>
+              </div>
+              <div class = "d-inline-block text-truncate lead bg-body-secondary border rounded me-2" style = "text-align:center">
+                <p style = "display : inline" class = "px-2">Gas : {{count_critical_gas}}</p>
+              </div>
+              <div class = "d-inline-block text-truncate lead bg-body-secondary border rounded" style = "text-align:center">
+                <p style = "display : inline" class = "px-2">Last {{graph_count}} hr</p>
+              </div>
+            </div>
+          </div>
+          <div class = "container-1 mx-auto mt-2">
+              <div id="info_horizontal" style="height: 250px;"></div>
+          </div>
         </div>
         {% comment %} <div class = "col-lg-4">
             <div class = "container-1 d-flex justify-content-center mx-auto" style = "width : 85%">
@@ -167,7 +215,7 @@
             chart.render();
         }
         
-        }
+    }
 
 
     var stockChart;
@@ -195,14 +243,25 @@
             enabled: true
           }
         },
+        toolTip:{
+          enabled : true,
+          shared: true
+        },
         data: [{ 
+            name : "Temperature",
             type: "stackedArea",
+            markerType: "circle",
+            yValueFormatString: "##.#" + '°C',
             dataPoints: []
           },{ 
+              name : "Humidity",
               type: "spline",
+              yValueFormatString: "##.#",
               dataPoints: []
           },{ 
+              name : "Gas Value",
               type: "spline",
+              yValueFormatString: "####.##" + ' ppm',
               dataPoints: []
           }]
       }], 
@@ -210,11 +269,6 @@
         enabled : true
       },   
       rangeSelector: {
-        {% comment %} inputFields: {
-          startValue: 4000,
-          endValue: 6000,
-          valueFormatString: "###0"
-        }, {% endcomment %}
         buttons: [{
           label: "1m",
           range: 1,
