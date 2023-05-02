@@ -100,6 +100,13 @@ def line_chart_view(request):
         # print(data_dict)
     # Retrieve data from Django database
     # data = SensorData.objects.all()
+    # Set the page width and margins in inches
+    page_width = 8.5
+    left_margin = 1
+    right_margin = 1
+
+    # Calculate the figure width based on the page width and margins
+    fig_width = page_width - left_margin - right_margin
     data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
 
     # Create a new figure object
@@ -109,10 +116,10 @@ def line_chart_view(request):
     ax = fig.add_subplot(1, 1, 1)
 
     # Create a line plot of the data
-    ax.plot([item.timestamp for item in data], [item.humidity for item in data])
+    ax.plot([item.timestamp for item in data], [item.temperature for item in data])
 
     # Set the chart title and axis labels
-    ax.set_title("My Line Chart")
+    ax.set_title("Temperature Chart")
     ax.set_xlabel("X Label")
     ax.set_ylabel("Y Label")
 
@@ -129,27 +136,43 @@ def line_chart_view(request):
     pdf_canvas = canvas.Canvas(buffer, pagesize=A4)
 
     # Add the PDF title
-    pdf_canvas.setFont("Helvetica-Bold", 16)
-    pdf_canvas.drawCentredString(A4[0] / 2, A4[1] - 50, "My PDF Title")
+    pdf_canvas.setFont("Helvetica-Bold", 18)
+    pdf_canvas.drawCentredString(A4[0] / 2, A4[1] - 50, "REPORT")
 
     # Add the date created
     pdf_canvas.setFont("Helvetica", 12)
     pdf_canvas.drawString(50, A4[1] - 80, "Created on: " + str(datetime.datetime.now()))
 
+    # Add the date range
+    pdf_canvas.setFont("Helvetica", 12)
+    pdf_canvas.drawString(50, A4[1] - 100, "From: " + str(start_datetime))
+    pdf_canvas.drawString(50, A4[1] - 120, "To: " + str(end_datetime))
+
+    # Get the width and height of the image
+    image_width, image_height = image.size
+
+    # Calculate the x and y coordinates to center the image on the page
+    x = (A4[0] - image_width) / 2
+    y = (A4[1] - image_height) / 2
+
     # Draw the PNG image on the PDF canvas
     pdf_canvas.drawImage(
         os.path.join(os.getcwd(), "static", "image.png"),
-        x=50,
-        y=A4[1] - 300,
-        width=image.width / 2,
-        height=image.height / 2,
+        # x=left_margin * 72,  # Convert margins from inches to points
+        x=x,
+        y=A4[1] - 550,
+        width=image_width,
+        height=image_height,
         preserveAspectRatio=True,
         anchor="nw",
     )
 
     # Add some text below the graph
     pdf_canvas.setFont("Helvetica", 12)
-    pdf_canvas.drawString(50, A4[1] - 500, "Some random text here...")
+    pdf_canvas.drawString(50, A4[1] - 570, "Average Temperature: ")
+    pdf_canvas.drawString(50, A4[1] - 590, "Lowest Temperature: ")
+    pdf_canvas.drawString(50, A4[1] - 610, "Highest Temperature: ")
+    pdf_canvas.drawString(50, A4[1] - 630, "Critcal Temperature Count: ")
 
     # Close the PDF canvas to finalize the PDF file
     pdf_canvas.showPage()
@@ -317,20 +340,28 @@ def testHome(request):
     #     ["anuman23840@gmail.com"],
     #     fail_silently=False,
     # )
-
+    hour_data = 24
+    minute_data = 0
     if request.method == "POST":
-        hour_data = request.POST.get("hour_data")
-        minute_data = request.POST.get("minute_data")
-        print(hour_data)
-        print(minute_data)
+        hour_data = int(request.POST.get("hour_data", 24))
+        minute_data = int(request.POST.get("minute_data", 0))
+        request.session['data_points'] = (hour_data*720) + (minute_data*12)
 
+    # Retrieve data_points from the session, or default to 2880
+    data_points = request.session.get('data_points', 2880*6)
+    print(data_points)
+    graph_count = data_points / 720
+
+    sensor_data = SensorData.objects.order_by("-timestamp")
+    data_points = min(len(sensor_data), data_points)
+    sensor_data = sensor_data[:data_points]
     critical_temp = settings.CRITICAL_TEMP
     critical_hum = settings.CRITICAL_HUMIDITY
     critical_gas = settings.CRITICAL_GAS_VALUE
     average_temperature = 30.0
-    sensor_data = SensorData.objects.filter(
-        timestamp__gte=timezone.now() - timedelta(hours=24)
-    ).order_by("timestamp")
+    # sensor_data = SensorData.objects.filter(
+    #     timestamp__gte=timezone.now() - timedelta(hours=24)
+    # ).order_by("timestamp")
     temperatures = [data.temperature for data in sensor_data]
     humidity_values = [data.humidity for data in sensor_data]
     gas_values = [data.gas_value for data in sensor_data]
@@ -340,6 +371,7 @@ def testHome(request):
     average_temperature = sum(filtered_temperatures) / len(filtered_temperatures)
     highest_temp = max(filtered_temperatures)
     lowest_temp = min(filtered_temperatures)
+    
 
     # Calculate highest and lowest humidity values
     filtered_humidity_values = [t for t in humidity_values if t is not None]
@@ -352,6 +384,30 @@ def testHome(request):
     average_gas = sum(filtered_gas_values) / len(filtered_gas_values)
     highest_gas = max(filtered_gas_values)
     lowest_gas = min(filtered_gas_values)
+
+    count=0
+    for t in filtered_temperatures:
+        if t > critical_temp:
+            count+=1
+    
+    count_critical_temp = count
+    print(count_critical_temp)
+    
+    count=0
+    for t in filtered_humidity_values:
+        if t > critical_temp:
+            count+=1
+    
+    count_critical_hum = count
+    print("fycjcjg",count_critical_hum)
+
+    count=0
+    for t in filtered_gas_values:
+        if t > critical_temp:
+            count+=1
+    
+    count_critical_gas = count
+    print(count_critical_gas)
 
     context = {
         "highest_temp": highest_temp,
@@ -366,6 +422,10 @@ def testHome(request):
         "critical_temp": critical_temp,
         "critical_hum": critical_hum,
         "critical_gas": critical_gas,
+        "count_critical_temp": count_critical_temp,
+        "count_critical_hum": count_critical_hum,
+        "count_critical_gas": count_critical_gas,
+        "graph_count":graph_count,
     }
     # print(context)
     return render(request, "testHome.html", context)
