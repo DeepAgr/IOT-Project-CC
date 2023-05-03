@@ -28,6 +28,7 @@ from reportlab.lib.pagesizes import A4
 from PIL import Image
 import os
 from matplotlib.figure import Figure
+from matplotlib.dates import DateFormatter
 
 
 def sensor_data_api2(request):
@@ -56,7 +57,7 @@ def line_chart_view(request):
     # ed = datetime.strptime(end_date, "%Y-%m-%d")
     # print(sd)
     # print(end_date)
-    if end_datetime <= start_datetime:
+    if end_datetime < start_datetime:
         messages.error(request, "End date must be ahead of start date.")
         return redirect("export_data")
     else:
@@ -100,13 +101,61 @@ def line_chart_view(request):
         # print(data_dict)
     # Retrieve data from Django database
     # data = SensorData.objects.all()
-    # Set the page width and margins in inches
-    page_width = 8.5
-    left_margin = 1
-    right_margin = 1
+    ###############################################################################
+    sensor_data = SensorData.objects.order_by("-timestamp")
+    # data_points = min(len(sensor_data), data_points)
+    # sensor_data = sensor_data[:data_points]
+    temperatures = [data.temperature for data in sensor_data]
+    humidity_values = [data.humidity for data in sensor_data]
+    gas_values = [data.gas_value for data in sensor_data]
 
-    # Calculate the figure width based on the page width and margins
-    fig_width = page_width - left_margin - right_margin
+    # Calculate highest and lowest temperatures
+    filtered_temperatures = [t for t in temperatures if t is not None]
+    average_temperature = sum(filtered_temperatures) / len(filtered_temperatures)
+    highest_temp = max(filtered_temperatures)
+    lowest_temp = min(filtered_temperatures)
+
+    # Calculate highest and lowest humidity values
+    filtered_humidity_values = [t for t in humidity_values if t is not None]
+    average_humidity = sum(filtered_humidity_values) / len(filtered_humidity_values)
+    highest_hum = max(filtered_humidity_values)
+    lowest_hum = min(filtered_humidity_values)
+
+    # Calculate highest and lowest gas values
+    filtered_gas_values = [t for t in gas_values if t is not None]
+    average_gas = sum(filtered_gas_values) / len(filtered_gas_values)
+    highest_gas = max(filtered_gas_values)
+    lowest_gas = min(filtered_gas_values)
+
+    critical_temp = settings.CRITICAL_TEMP
+    critical_hum = settings.CRITICAL_HUMIDITY
+    critical_gas = settings.CRITICAL_GAS_VALUE
+    count = 0
+    for t in filtered_temperatures:
+        if t > critical_temp:
+            count += 1
+
+    count_critical_temp = count
+    print(count_critical_temp)
+
+    count = 0
+    for t in filtered_humidity_values:
+        if t > critical_hum:
+            count += 1
+
+    count_critical_hum = count
+    print("fycjcjg", count_critical_hum)
+
+    count = 0
+    for t in filtered_gas_values:
+        if t > critical_gas:
+            count += 1
+
+    count_critical_gas = count
+    print(count_critical_gas)
+
+    ###################################################################################
+
     data = SensorData.objects.filter(timestamp__range=[start_datetime, end_datetime])
 
     # Create a new figure object
@@ -120,8 +169,12 @@ def line_chart_view(request):
 
     # Set the chart title and axis labels
     ax.set_title("Temperature Chart")
-    ax.set_xlabel("X Label")
-    ax.set_ylabel("Y Label")
+    ax.set_xlabel("Timestamp (dd-mm)")
+    ax.set_ylabel("Temperature")
+
+    # Format the x-axis labels as dates
+    date_format = DateFormatter("%d-%m")  # Change the date format here as needed
+    ax.xaxis.set_major_formatter(date_format)
 
     # Save the figure to a PNG file in the "static" directory of the Django project
     fig.savefig(os.path.join(os.getcwd(), "static", "image.png"))
@@ -140,11 +193,11 @@ def line_chart_view(request):
     pdf_canvas.drawCentredString(A4[0] / 2, A4[1] - 50, "REPORT")
 
     # Add the date created
-    pdf_canvas.setFont("Helvetica", 12)
+    pdf_canvas.setFont("Helvetica", 15)
     pdf_canvas.drawString(50, A4[1] - 80, "Created on: " + str(datetime.datetime.now()))
 
     # Add the date range
-    pdf_canvas.setFont("Helvetica", 12)
+    pdf_canvas.setFont("Helvetica", 15)
     pdf_canvas.drawString(50, A4[1] - 100, "From: " + str(start_datetime))
     pdf_canvas.drawString(50, A4[1] - 120, "To: " + str(end_datetime))
 
@@ -154,6 +207,7 @@ def line_chart_view(request):
     # Calculate the x and y coordinates to center the image on the page
     x = (A4[0] - image_width) / 2
     y = (A4[1] - image_height) / 2
+
 
     # Draw the PNG image on the PDF canvas
     pdf_canvas.drawImage(
@@ -168,11 +222,143 @@ def line_chart_view(request):
     )
 
     # Add some text below the graph
-    pdf_canvas.setFont("Helvetica", 12)
-    pdf_canvas.drawString(50, A4[1] - 570, "Average Temperature: ")
-    pdf_canvas.drawString(50, A4[1] - 590, "Lowest Temperature: ")
-    pdf_canvas.drawString(50, A4[1] - 610, "Highest Temperature: ")
-    pdf_canvas.drawString(50, A4[1] - 630, "Critcal Temperature Count: ")
+    pdf_canvas.setFont("Helvetica", 15)
+    pdf_canvas.drawString(50, A4[1] - 590, f"Average Temperature in the specified period: {round(average_temperature,1)}\u00b0C")
+    pdf_canvas.drawString(50, A4[1] - 610, f"Lowest Temperature in the specified period: {round(lowest_temp,1)}\u00b0C")
+    pdf_canvas.drawString(50, A4[1] - 630, f"Highest Temperature in the specified period: {round(highest_temp,1)}\u00b0C")
+    pdf_canvas.drawString(50, A4[1] - 650, f"Critical Temperature Count in the specified period: {count_critical_temp}")
+
+    # Delete png image from the path
+    png_path = os.path.join(os.getcwd(), "static", "image.png")
+    image.close()
+    os.remove(png_path)
+
+    # # Close the PDF canvas to finalize the PDF file
+    # pdf_canvas.showPage()
+    # pdf_canvas.save()
+
+    # # Reset the buffer for reading
+    # buffer.seek(0)
+
+    ###########################################################################################
+    pdf_canvas.showPage()
+    # Create a new figure object
+    fig2 = Figure(figsize=(6, 4), dpi=100)
+
+    # Add a subplot to the figure
+    ax2= fig2.add_subplot(1, 1, 1)
+
+    # Create a line plot of the data
+    ax2.plot([item.timestamp for item in data], [item.humidity for item in data])
+
+    # Set the chart title and axis labels
+    ax2.set_title("Humidity Chart")
+    ax2.set_xlabel("Timestamp (dd-mm)")
+    ax2.set_ylabel("Humidity (%)")
+
+    # Format the x-axis labels as dates
+    date_format = DateFormatter("%d-%m")  # Change the date format here as needed
+    ax2.xaxis.set_major_formatter(date_format)
+
+    # Save the figure to a PNG file in the "static" directory of the Django project
+    fig2.savefig(os.path.join(os.getcwd(), "static", "hum.png"))
+
+    # Create a PIL Image object from the saved file
+    image2 = Image.open(os.path.join(os.getcwd(), "static", "hum.png"))
+
+    # # Create a new buffer to hold the PDF data
+    # buffer = io.BytesIO()
+
+    # Get the width and height of the image
+    image_width, image_height = image2.size
+
+    # Calculate the x and y coordinates to center the image on the page
+    x = (A4[0] - image_width) / 2
+    y = (A4[1] - image_height) / 2
+
+    # Draw the PNG image on the PDF canvas
+    pdf_canvas.drawImage(
+        os.path.join(os.getcwd(), "static", "hum.png"),
+        # x=left_margin * 72,  # Convert margins from inches to points
+        x=x,
+        y=A4[1] - 450,
+        width=image_width,
+        height=image_height,
+        preserveAspectRatio=True,
+        anchor="nw",
+    )
+
+    # Add some text below the graph
+    pdf_canvas.setFont("Helvetica", 15)
+    pdf_canvas.drawString(50, A4[1] - 570, f"Average Humidity in the specified period: {round(average_humidity,1)}%")
+    pdf_canvas.drawString(50, A4[1] - 590, f"Lowest Humidity in the specified period: {round(lowest_hum,1)}%")
+    pdf_canvas.drawString(50, A4[1] - 610, f"Highest Humidity in the specified period: {round(highest_hum,1)}%")
+    pdf_canvas.drawString(50, A4[1] - 630, f"Critical Humidity Count in the specified period: {count_critical_hum}")
+
+    # # Close the PDF canvas to finalize the PDF file
+    # pdf_canvas.showPage()
+    
+
+    # Delete png image from the path
+    png_path = os.path.join(os.getcwd(), "static", "hum.png")
+    image.close()
+    os.remove(png_path)
+
+
+    ###########################################################################################
+    pdf_canvas.showPage()
+    # Create a new figure object
+    fig3 = Figure(figsize=(6, 4), dpi=100)
+
+    # Add a subplot to the figure
+    ax3= fig3.add_subplot(1, 1, 1)
+
+    # Create a line plot of the data
+    ax3.plot([item.timestamp for item in data], [item.gas_value for item in data])
+
+    # Set the chart title and axis labels
+    ax3.set_title("Gas Detection Chart")
+    ax3.set_xlabel("Timestamp (dd-mm)")
+    ax3.set_ylabel("Gas Value (ppm)")
+
+    # Format the x-axis labels as dates
+    date_format = DateFormatter("%d-%m")  # Change the date format here as needed
+    ax.xaxis.set_major_formatter(date_format)
+
+    # Save the figure to a PNG file in the "static" directory of the Django project
+    fig3.savefig(os.path.join(os.getcwd(), "static", "gas.png"))
+
+    # Create a PIL Image object from the saved file
+    image3 = Image.open(os.path.join(os.getcwd(), "static", "gas.png"))
+
+    # # Create a new buffer to hold the PDF data
+    # buffer = io.BytesIO()
+
+    # Get the width and height of the image
+    image_width, image_height = image3.size
+
+    # Calculate the x and y coordinates to center the image on the page
+    x = (A4[0] - image_width) / 2
+    y = (A4[1] - image_height) / 2
+
+    # Draw the PNG image on the PDF canvas
+    pdf_canvas.drawImage(
+        os.path.join(os.getcwd(), "static", "gas.png"),
+        # x=left_margin * 72,  # Convert margins from inches to points
+        x=x,
+        y=A4[1] - 450,
+        width=image_width,
+        height=image_height,
+        preserveAspectRatio=True,
+        anchor="nw",
+    )
+
+    # Add some text below the graph
+    pdf_canvas.setFont("Helvetica", 15)
+    pdf_canvas.drawString(50, A4[1] - 570, f"Average Gas Value in the specified period: {round(average_gas,1)} ppm")
+    pdf_canvas.drawString(50, A4[1] - 590, f"Lowest Gas Value in the specified period: {round(lowest_gas,1)} ppm")
+    pdf_canvas.drawString(50, A4[1] - 610, f"Highest Gas Value in the specified period: {round(highest_gas,1)} ppm")
+    pdf_canvas.drawString(50, A4[1] - 630, f"Critical Gas Value Count in the specified period: {count_critical_gas}")
 
     # Close the PDF canvas to finalize the PDF file
     pdf_canvas.showPage()
@@ -181,12 +367,13 @@ def line_chart_view(request):
     # Reset the buffer for reading
     buffer.seek(0)
 
+
     # Create a Django HttpResponse object with the PDF file data.
     response = FileResponse(buffer, content_type="application/pdf")
     response["Content-Disposition"] = 'attachment; filename="line_chart.pdf"'
 
     # Delete png image from the path
-    png_path = os.path.join(os.getcwd(), "static", "image.png")
+    png_path = os.path.join(os.getcwd(), "static", "gas.png")
     image.close()
     os.remove(png_path)
 
@@ -331,7 +518,7 @@ def newHome(request):
 
     count = 0
     for t in filtered_humidity_values:
-        if t > critical_temp:
+        if t > critical_hum:
             count += 1
 
     count_critical_hum = count
@@ -339,7 +526,7 @@ def newHome(request):
 
     count = 0
     for t in filtered_gas_values:
-        if t > critical_temp:
+        if t > critical_gas:
             count += 1
 
     count_critical_gas = count
